@@ -410,7 +410,7 @@ int main(int argc, char** argv) {
             // step 3: connected components labeling (CCL)
             TIME_POINT(ccl_b);
             const uint32_t n_RoIs_tmp0 = CCL_LSL_apply(ccl_data0, (const uint8_t**)IB0, L10, 0);
-            assert(n_RoIs_tmp0 <= (uint32_t)def_p_cca_roi_max1);
+            assert(n_RoIs_tmp0 <= (uint32_t)p_cca_roi_max1);
             TIME_POINT(ccl_e);
             TIME_ACC(ccl_a, ccl_b, ccl_e);
 
@@ -451,7 +451,7 @@ int main(int argc, char** argv) {
         // step 3: connected components labeling (CCL)
         TIME_POINT(ccl_b);
         const uint32_t n_RoIs_tmp1 = CCL_LSL_apply(ccl_data1, (const uint8_t**)IB1, L11, 0);
-        assert(n_RoIs_tmp1 <= (uint32_t)def_p_cca_roi_max1);
+        assert(n_RoIs_tmp1 <= (uint32_t)p_cca_roi_max1);
         TIME_POINT(ccl_e);
         TIME_ACC(ccl_a, ccl_b, ccl_e);
 
