@@ -1,14 +1,24 @@
 #pragma once
 
-#include "motion/morpho/morpho_compute.h"
-#include "motion/morpho/morpho_struct.h"
+#include <math.h>
+#include <stdlib.h>
+#include <nrc2.h>
 
-class Morpho : public spu::module::Stateful {
+#include <streampu.hpp>
+#include "motion/morpho.h"
+
+class Morpho : public spu::module::Stateful
+{
 protected:
-	int i0;
-	int i1;
-	int j0;
-	int j1;
-	uint8_t 
+	int i0; /* do we  */
+	int i1; /* really */ 
+	int j0; /* need   */
+	int j1; /* this ? */
+	morpho_data_t *morpho_data;
 
-}
+	uint8_t **tmp_img;
+
+public:
+	Morpho(const int i0, const int i1, const int j0, const int j1);
+	virtual ~Morpho();
+};
