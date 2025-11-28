@@ -1,16 +1,12 @@
+// lahkim leon
 #include "motion/wrapper/Morpho.hpp"
 
 Morpho::Morpho(const int i0, const int i1, const int j0, const int j1)
-: spu::module::Stateful(), i0(0), i1(0), j0(0), j1(0)
+: spu::module::Stateful(), i0(i0), i1(i1), j0(j0), j1(j1)
 {
 	const std::string name = "morpho";
 	this->set_name(name);
 	this->set_short_name(name);
-
-	this->i0 = i0; /* do we  */
-	this->i1 = i1; /* really */     
-	this->j0 = j0; /* need   */
-	this->j1 = j1; /* this ? */
 	this->morpho_data = morpho_alloc_data(i0, i1, j0, j1);
 	morpho_init_data(this->morpho_data); // check this
 	this->tmp_img = ui8matrix(i0, i1, j0, j1);
