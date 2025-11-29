@@ -23,12 +23,12 @@ KNN::KNN(const size_t knn_max_sz, const size_t RoIs_max_sz, const int k, const u
                 (spu::module::Module &m, spu::runtime::Task &p, const size_t frame_id) -> int {
             auto &knn = static_cast<KNN&>(m);
 
-            RoI_t *in_RoIs0 = p[si_RoIs0].get_dataptr<uint8_t>();
-            RoI_t *in_RoIs1 = p[si_RoIs1].get_dataptr<uint8_t>();
+            RoI_t *in_RoIs0 = p[si_RoIs0].get_dataptr<RoI_t>();
+            RoI_t *in_RoIs1 = p[si_RoIs1].get_dataptr<RoI_t>();
             uint32_t n_RoIs0  = p[si_n_RoIs0].get_dataptr<const uint32_t>()[0];
             uint32_t n_RoIs1  = p[si_n_RoIs1].get_dataptr<const uint32_t>()[0];
 
-            RoI_t *out_RoIs1 = p[so_RoIs1].get_dataptr<uint8_t>();
+            RoI_t *out_RoIs1 = p[so_RoIs1].get_dataptr<RoI_t>();
             uint32_t *out_n_RoIs0 = p[so_n_RoIs0].get_dataptr<uint32_t>();
 
             kNN_match(knn.knn_data,

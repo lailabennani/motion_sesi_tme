@@ -16,7 +16,7 @@ Features_CCA::Features_CCA(const int i0, const int i1, const int j0, const int j
     auto si_labels = this->template create_2d_socket_in<uint32_t>(t, "in_labels", (i1 - i0) + 1, (j1 - j0) + 1); // fwd
     auto si_n_RoIs = this->template create_socket_in<uint32_t>(t, "in_n_RoIs", 1); // fwd
     auto so_labels = this->template create_2d_socket_out<uint32_t>(t, "out_labels", (i1 - i0) + 1, (j1 - j0) + 1); //fwd
-    auto so_RoIs = this->template create_socket_out<uint8_t>(t, "out_RoIs", max_sz * sizeof(RoI_t));
+    auto so_RoIs   = this->template create_socket_out<uint8_t>(t, "out_RoIs", max_sz * sizeof(RoI_t));
     auto so_n_RoIs = this->template create_socket_out<uint32_t>(t, "out_n_RoIs", 1); // fwd
 
     this->create_codelet(t,
@@ -26,7 +26,7 @@ Features_CCA::Features_CCA(const int i0, const int i1, const int j0, const int j
 
         const uint32_t **in_labels = p[si_labels].get_2d_dataptr<const uint32_t>();
         uint32_t **out_labels = p[so_labels].get_2d_dataptr<uint32_t>();
-        auto out_RoIs = p[so_RoIs].get_dataptr<uint8_t>();
+        RoI_t *out_RoIs = p[so_RoIs].get_dataptr<RoI_t>(); // verify
         auto n_RoIs = p[si_n_RoIs].get_dataptr<const uint32_t>()[0]; // not sure. verify
 
         features_extract(in_labels, cca.i0, cca.i1, cca.j0, cca.j1, out_RoIs, n_RoIs);
