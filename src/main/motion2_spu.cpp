@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <assert.h>
-#include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <nrc2.h>
@@ -20,7 +18,6 @@
 #include "motion/tracking.h"
 #include "motion/video.h"
 #include "motion/image.h"
-#include "motion/video.h"
 #include "motion/sigma_delta.h"
 #include "motion/morpho.h"
 #include "motion/visu.h"
@@ -31,6 +28,10 @@
 #include "motion/wrapper/Logger_kNN.hpp"
 #include "motion/wrapper/Logger_tracks.hpp"
 #include "motion/wrapper/Visu.hpp"
+
+#include "motion/wrapper/Morpho.hpp"
+#include "motion/wrapper/Features_CCA.hpp"
+#include "motion/wrapper/KNN.hpp"
 
 
 int main(int argc, char** argv) {
@@ -280,15 +281,24 @@ int main(int argc, char** argv) {
 
     sigma_delta_data_t* sd_data0 = sigma_delta_alloc_data(i0, i1, j0, j1, 1, 254);
     sigma_delta_data_t* sd_data1 = sigma_delta_alloc_data(i0, i1, j0, j1, 1, 254);
-    morpho_data_t* morpho_data0 = morpho_alloc_data(i0, i1, j0, j1);
-    morpho_data_t* morpho_data1 = morpho_alloc_data(i0, i1, j0, j1);
+    //morpho_data_t* morpho_data0 = morpho_alloc_data(i0, i1, j0, j1);
+    //morpho_data_t* morpho_data1 = morpho_alloc_data(i0, i1, j0, j1);
+    Morpho morpho_wrapper0(i0, i1, j0, j1);
+    Morpho morpho_wrapper1(i0, i1, j0, j1);
+    
     RoI_t* RoIs_tmp0 = features_alloc_RoIs(p_cca_roi_max1);
     RoI_t* RoIs0 = features_alloc_RoIs(p_cca_roi_max2);
     RoI_t* RoIs_tmp1 = features_alloc_RoIs(p_cca_roi_max1);
     RoI_t* RoIs1 = features_alloc_RoIs(p_cca_roi_max2);
+
+    Features_CCA f_cca_wrapper(i0, i1, j0, j1, p_cca_roi_max1);
+
     CCL_data_t* ccl_data0 = CCL_LSL_alloc_data(i0, i1, j0, j1);
     CCL_data_t* ccl_data1 = CCL_LSL_alloc_data(i0, i1, j0, j1);
-    kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max2);
+    //kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max2);
+
+    KNN knn(p_cca_roi_max2, p_knn_k, p_knn_d, p_knn_s);
+
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_obj_min, p_trk_ext_o) + 1, p_cca_roi_max2);
     uint8_t **IG0 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t - 1
     uint8_t **IG1 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t
@@ -337,15 +347,15 @@ int main(int argc, char** argv) {
         zero_ui32matrix(L20, i0, i1, j0, j1);
         zero_ui32matrix(L21, i0, i1, j0, j1);
     }
-    morpho_init_data(morpho_data0);
-    morpho_init_data(morpho_data1);
+    //morpho_init_data(morpho_data0);
+    //morpho_init_data(morpho_data1);
     CCL_LSL_init_data(ccl_data0);
     CCL_LSL_init_data(ccl_data1);
     features_init_RoIs(RoIs_tmp0, p_cca_roi_max1);
     features_init_RoIs(RoIs_tmp1, p_cca_roi_max1);
     features_init_RoIs(RoIs0, p_cca_roi_max2);
     features_init_RoIs(RoIs1, p_cca_roi_max2);
-    kNN_init_data(knn_data);
+    //kNN_init_data(knn_data);
     tracking_init_data(tracking_data);
 
     if (visu) {
@@ -402,8 +412,12 @@ int main(int argc, char** argv) {
 
             // step 2: mathematical morphology
             TIME_POINT(mrp_b);
-            morpho_compute_opening3(morpho_data0, (const uint8_t**)IB0, IB0, i0, i1, j0, j1);
-            morpho_compute_closing3(morpho_data0, (const uint8_t**)IB0, IB0, i0, i1, j0, j1);
+            //morpho_compute_opening3(morpho_data0, (const uint8_t**)IB0, IB0, i0, i1, j0, j1);
+            //morpho_compute_closing3(morpho_data0, (const uint8_t**)IB0, IB0, i0, i1, j0, j1);
+            morpho_wrapper0["compute::in_img"].bind(IB0[0]);
+            morpho_wrapper0["compute::out_img"].bind(IB0[0]);
+            morpho_wrapper0("compute").exec();
+
             TIME_POINT(mrp_e);
             TIME_ACC(mrp_a, mrp_b, mrp_e);
 
@@ -416,7 +430,13 @@ int main(int argc, char** argv) {
 
             // step 4: connected components analysis (CCA): from image of labels to "regions of interest" (RoIs)
             TIME_POINT(cca_b);
-            features_extract((const uint32_t**)L10, i0, i1, j0, j1, RoIs_tmp0, n_RoIs_tmp0);
+            //features_extract((const uint32_t**)L10, i0, i1, j0, j1, RoIs_tmp0, n_RoIs_tmp0);
+            f_cca_wrapper["extract::in_labels"].bind(L10[0]);
+            f_cca_wrapper["extract::in_n_RoIs"].bind(&n_RoIs_tmp0);
+            f_cca_wrapper["extract::out_RoIs"].bind((uint8_t*)RoIs_tmp0);
+            //f_cca_wrapper["extract::out_labels"].bind(L20[0]); // for later use if needed
+            f_cca_wrapper["extract::out_n_RoIs"].bind(&n_RoIs_tmp0);
+            f_cca_wrapper("extract").exec();
             TIME_POINT(cca_e);
             TIME_ACC(cca_a, cca_b, cca_e);
 
@@ -443,8 +463,11 @@ int main(int argc, char** argv) {
 
         // step 2: mathematical morphology
         TIME_POINT(mrp_b);
-        morpho_compute_opening3(morpho_data1, (const uint8_t**)IB1, IB1, i0, i1, j0, j1);
-        morpho_compute_closing3(morpho_data1, (const uint8_t**)IB1, IB1, i0, i1, j0, j1);
+        //morpho_compute_opening3(morpho_data1, (const uint8_t**)IB1, IB1, i0, i1, j0, j1);
+        //morpho_compute_closing3(morpho_data1, (const uint8_t**)IB1, IB1, i0, i1, j0, j1);
+        morpho_wrapper1["compute::in_img"].bind(IB1[0]);
+        morpho_wrapper1["compute::out_img"].bind(IB1[0]);
+        morpho_wrapper1("compute").exec();
         TIME_POINT(mrp_e);
         TIME_ACC(mrp_a, mrp_b, mrp_e);
 
@@ -457,7 +480,13 @@ int main(int argc, char** argv) {
 
         // step 4: connected components analysis (CCA): from image of labels to "regions of interest" (RoIs)
         TIME_POINT(cca_b);
-        features_extract((const uint32_t**)L11, i0, i1, j0, j1, RoIs_tmp1, n_RoIs_tmp1);
+        //features_extract((const uint32_t**)L11, i0, i1, j0, j1, RoIs_tmp1, n_RoIs_tmp1);
+        f_cca_wrapper["extract::in_labels"].bind(L11[0]);
+        f_cca_wrapper["extract::in_n_RoIs"].bind(&n_RoIs_tmp1);
+        f_cca_wrapper["extract::out_RoIs"].bind((uint8_t*)RoIs_tmp1);
+        //f_cca_wrapper["extract::out_labels"].bind(L21[0]); // for later use if needed 
+        f_cca_wrapper["extract::out_n_RoIs"].bind(&n_RoIs_tmp1);
+        f_cca_wrapper("extract").exec();
         TIME_POINT(cca_e);
         TIME_ACC(cca_a, cca_b, cca_e);
 
@@ -477,7 +506,16 @@ int main(int argc, char** argv) {
 
         // step 6: k-NN matching (RoIs associations)
         TIME_POINT(knn_b);
-        kNN_match(knn_data, RoIs0, n_RoIs0, RoIs1, n_RoIs1, p_knn_k, p_knn_d, p_knn_s);
+        //kNN_match(knn_data, RoIs0, n_RoIs0, RoIs1, n_RoIs1, p_knn_k, p_knn_d, p_knn_s);
+        knn["match::in_RoIs0"].bind((uint8_t*)RoIs0);
+        knn["match::in_RoIs1"].bind((uint8_t*)RoIs1);
+        knn["match::in_n_RoIs0"].bind(&n_RoIs0);
+        knn["match::in_n_RoIs1"].bind(&n_RoIs1);
+        knn["match::out_RoIs0"].bind((uint8_t*)RoIs0);
+        knn["match::out_RoIs1"].bind((uint8_t*)RoIs1);
+        knn["match::in_n_RoIs1"].bind(&n_RoIs1);
+        knn["match::in_n_RoIs0"].bind(&n_RoIs0);
+        knn("match").exec();
         TIME_POINT(knn_e);
         TIME_ACC(knn_a, knn_b, knn_e);
 
@@ -511,6 +549,7 @@ int main(int argc, char** argv) {
             log_RoIs("write").exec();
 
             if (cur_fra > (uint32_t)p_vid_in_start) {
+                kNN_data_t* knn_data = knn.get_kNN_data(); // just for testing
                 log_kNN["write::in_nearest"].bind(knn_data->nearest[0]);
                 log_kNN["write::in_distances"].bind(knn_data->distances[0]);
 #ifdef MOTION_ENABLE_DEBUG
@@ -608,8 +647,8 @@ int main(int argc, char** argv) {
 
     sigma_delta_free_data(sd_data0);
     sigma_delta_free_data(sd_data1);
-    morpho_free_data(morpho_data0);
-    morpho_free_data(morpho_data1);
+    //morpho_free_data(morpho_data0);
+    //morpho_free_data(morpho_data1);
     free_ui8matrix(IG0, i0, i1, j0, j1);
     free_ui8matrix(IG1, i0, i1, j0, j1);
     free_ui8matrix(IB0, i0, i1, j0, j1);
@@ -626,7 +665,7 @@ int main(int argc, char** argv) {
     features_free_RoIs(RoIs1);
     CCL_LSL_free_data(ccl_data0);
     CCL_LSL_free_data(ccl_data1);
-    kNN_free_data(knn_data);
+    //kNN_free_data(knn_data);
     tracking_free_data(tracking_data);
 
     printf("#\n");

@@ -9,7 +9,9 @@ protected:
     kNN_data_t *knn_data;
 
 public:
-    KNN(const size_t knn_max_sz, const size_t RoIs_max_sz, const int k, const uint32_t max_dist, const float min_ratio_S);
+    KNN(const size_t max_sz, const int k, const uint32_t max_dist, const float min_ratio_S);
     virtual ~KNN();
+
+    kNN_data_t* get_kNN_data() const;
 
 };
