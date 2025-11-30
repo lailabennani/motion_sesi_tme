@@ -15,11 +15,11 @@ protected:
 	int j1;
 	uint8_t vmin;
 	uint8_t vmax;
+	int n;
 	sigma_delta_data_t* sd_data;
 
-	uint8_t **tmp_img; // not sure yet
 public:
-	Sigma_delta(const int i0, const int i1, const int j0, const int j1, const uint8_t vmin, const uint8_t vmax);
+	Sigma_delta(const uint8_t** initial_img, const int i0, const int i1, const int j0, const int j1, const uint8_t vmin, const uint8_t vmax, const int n);
 	virtual ~Sigma_delta();
 
 };
