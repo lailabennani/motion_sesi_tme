@@ -29,6 +29,7 @@
 #include "motion/wrapper/Logger_tracks.hpp"
 #include "motion/wrapper/Visu.hpp"
 
+#include "motion/wrapper/Sigma_delta.hpp"
 #include "motion/wrapper/Morpho.hpp"
 #include "motion/wrapper/Features_CCA.hpp"
 #include "motion/wrapper/KNN.hpp"
@@ -279,8 +280,11 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    sigma_delta_data_t* sd_data0 = sigma_delta_alloc_data(i0, i1, j0, j1, 1, 254);
-    sigma_delta_data_t* sd_data1 = sigma_delta_alloc_data(i0, i1, j0, j1, 1, 254);
+    //sigma_delta_data_t* sd_data0 = sigma_delta_alloc_data(i0, i1, j0, j1, 1, 254);
+    //sigma_delta_data_t* sd_data1 = sigma_delta_alloc_data(i0, i1, j0, j1, 1, 254);
+    
+    // initialization of sigma delta is en bas
+    
     //morpho_data_t* morpho_data0 = morpho_alloc_data(i0, i1, j0, j1);
     //morpho_data_t* morpho_data1 = morpho_alloc_data(i0, i1, j0, j1);
     Morpho morpho_wrapper0(i0, i1, j0, j1);
@@ -334,8 +338,10 @@ int main(int argc, char** argv) {
     video["generate::out_frame"].bind(&cur_fra);
     video("generate").exec();
 
-    sigma_delta_init_data(sd_data0, (const uint8_t**)IG1, i0, i1, j0, j1);
-    sigma_delta_init_data(sd_data1, (const uint8_t**)IG1, i0, i1, j0, j1);
+    //sigma_delta_init_data(sd_data0, (const uint8_t**)IG1, i0, i1, j0, j1);
+    //sigma_delta_init_data(sd_data1, (const uint8_t**)IG1, i0, i1, j0, j1);
+    Sigma_delta sd_wrapper0((const uint8_t**)IG1, i0, i1, j0, j1, 1, 254, p_sd_n);
+    Sigma_delta sd_wrapper1((const uint8_t**)IG1, i0, i1, j0, j1, 1, 254, p_sd_n);
 
     zero_ui8matrix(IG0, i0, i1, j0, j1);
     zero_ui8matrix(IG1, i0, i1, j0, j1);
@@ -406,7 +412,10 @@ int main(int argc, char** argv) {
         if (n_processed_frames > 0) {
             // step 1: motion detection (per pixel) with Sigma-Delta algorithm
             TIME_POINT(sd_b);
-            sigma_delta_compute(sd_data0, (const uint8_t**)IG0, IB0, i0, i1, j0, j1, p_sd_n);
+            //sigma_delta_compute(sd_data0, (const uint8_t**)IG0, IB0, i0, i1, j0, j1, p_sd_n);
+            sd_wrapper0["compute::in_img"].bind(IG0[0]);
+            sd_wrapper0["compute::out_img"].bind(IB0[0]);
+            sd_wrapper0("compute").exec();
             TIME_POINT(sd_e);
             TIME_ACC(sd_a, sd_b, sd_e);
 
@@ -457,7 +466,10 @@ int main(int argc, char** argv) {
 
         // step 1: motion detection (per pixel) with Sigma-Delta algorithm
         TIME_POINT(sd_b);
-        sigma_delta_compute(sd_data1, (const uint8_t**)IG1, IB1, i0, i1, j0, j1, p_sd_n);
+        //sigma_delta_compute(sd_data1, (const uint8_t**)IG1, IB1, i0, i1, j0, j1, p_sd_n);
+        sd_wrapper1["compute::in_img"].bind(IG1[0]);
+        sd_wrapper1["compute::out_img"].bind(IB1[0]);
+        sd_wrapper1("compute").exec();
         TIME_POINT(sd_e);
         TIME_ACC(sd_a, sd_b, sd_e);
 
@@ -645,8 +657,8 @@ int main(int argc, char** argv) {
     // -- FREE -- //
     // ---------- //
 
-    sigma_delta_free_data(sd_data0);
-    sigma_delta_free_data(sd_data1);
+    //sigma_delta_free_data(sd_data0);
+    //sigma_delta_free_data(sd_data1);
     //morpho_free_data(morpho_data0);
     //morpho_free_data(morpho_data1);
     free_ui8matrix(IG0, i0, i1, j0, j1);
