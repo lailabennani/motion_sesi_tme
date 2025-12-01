@@ -34,7 +34,7 @@
 #include "motion/wrapper/CCL.hpp"
 #include "motion/wrapper/Features_CCA.hpp"
 #include "motion/wrapper/KNN.hpp"
-#include "motion/wrapper/Tracker.hpp"
+#include "motion/wrapper/Tracking.hpp"
 #include "motion/wrapper/Features_filter.hpp"
 
 
@@ -313,7 +313,10 @@ int main(int argc, char** argv) {
 
     KNN knn(p_cca_roi_max2, p_knn_k, p_knn_d, p_knn_s);
 
-    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_obj_min, p_trk_ext_o) + 1, p_cca_roi_max2);
+    //tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_obj_min, p_trk_ext_o) + 1, p_cca_roi_max2);
+    Tracking tracking_wrapper(p_trk_ext_d, p_trk_obj_min, p_trk_roi_path != NULL || p_vid_out_play || p_vid_out_path,
+                              p_trk_ext_o,  p_knn_s, MAX(p_trk_obj_min, p_trk_ext_o) + 1, p_cca_roi_max2);
+    const tracking_data_t *tracking_data = tracking_wrapper.get_tracking_data(); // flemme de changer dans le sucessif
     uint8_t **IG0 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t - 1
     uint8_t **IG1 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t
     uint8_t **IB0 = ui8matrix(i0, i1, j0, j1); // binary image (after Sigma-Delta) at t - 1
@@ -372,7 +375,7 @@ int main(int argc, char** argv) {
     features_init_RoIs(RoIs0, p_cca_roi_max2);
     features_init_RoIs(RoIs1, p_cca_roi_max2);
     //kNN_init_data(knn_data);
-    tracking_init_data(tracking_data);
+    //tracking_init_data(tracking_data);
 
     if (visu) {
         uint32_t n_RoIs1 = 0;
@@ -470,7 +473,7 @@ int main(int argc, char** argv) {
             //assert(n_RoIs0 <= (uint32_t)p_cca_roi_max2);
             // features_labels_zero_init(RoIs_tmp->basic, L1);
             //features_shrink_basic(RoIs_tmp0, n_RoIs_tmp0, RoIs0);
-            printf("ffilter...\n");
+
             f_filter_wrapper0["filter::in_labels"].bind(L10[0]);
             f_filter_wrapper0["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp0);
             f_filter_wrapper0["filter::in_n_RoIs"].bind(&n_RoIs_tmp0);
@@ -542,7 +545,6 @@ int main(int argc, char** argv) {
         //features_shrink_basic(RoIs_tmp1, n_RoIs_tmp1, RoIs1);
         
         uint32_t n_RoIs1;
-        printf("ffilter1...\n");
         f_filter_wrapper1["filter::in_labels"].bind(L11[0]);
         f_filter_wrapper1["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp1);
         f_filter_wrapper1["filter::in_n_RoIs"].bind(&n_RoIs_tmp1);
@@ -578,8 +580,11 @@ int main(int argc, char** argv) {
 
         // step 7: temporal tracking
         TIME_POINT(trk_b);
-        tracking_perform(tracking_data, RoIs1, n_RoIs1, cur_fra, p_trk_ext_d, p_trk_obj_min,
-                         p_trk_roi_path != NULL || visu, p_trk_ext_o, p_knn_s);
+        //tracking_perform(tracking_data, RoIs1, n_RoIs1, cur_fra, p_trk_ext_d, p_trk_obj_min,
+        //                 p_trk_roi_path != NULL || visu, p_trk_ext_o, p_knn_s);
+        tracking_wrapper["perform::in_RoIs"].bind((uint8_t*)RoIs1);
+        tracking_wrapper["perform::in_n_RoIs"].bind(&n_RoIs1);
+        tracking_wrapper("perform").exec();
         TIME_POINT(trk_e);
         TIME_ACC(trk_a, trk_b, trk_e);
 
@@ -666,6 +671,7 @@ int main(int argc, char** argv) {
         tracking_tracks_RoIs_id_write(f, tracking_data->tracks);
         fclose(f);
     }
+
     tracking_tracks_write(stdout, tracking_data->tracks);
 
     printf("# Tracks statistics:\n");
@@ -723,7 +729,7 @@ int main(int argc, char** argv) {
     //CCL_LSL_free_data(ccl_data0);
     //CCL_LSL_free_data(ccl_data1);
     //kNN_free_data(knn_data);
-    tracking_free_data(tracking_data);
+    //tracking_free_data(tracking_data);
 
     printf("#\n");
     printf("# End of the program, exiting.\n");

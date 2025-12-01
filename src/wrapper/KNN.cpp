@@ -55,4 +55,4 @@ KNN::~KNN() {
 }
 
 
-kNN_data_t* KNN::get_kNN_data() const { return this->knn_data; }
+kNN_data_t *KNN::get_kNN_data() const { return this->knn_data; }
