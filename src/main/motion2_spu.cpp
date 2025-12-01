@@ -31,8 +31,11 @@
 
 #include "motion/wrapper/Sigma_delta.hpp"
 #include "motion/wrapper/Morpho.hpp"
+#include "motion/wrapper/CCL.hpp"
 #include "motion/wrapper/Features_CCA.hpp"
 #include "motion/wrapper/KNN.hpp"
+#include "motion/wrapper/Tracker.hpp"
+#include "motion/wrapper/Features_filter.hpp"
 
 
 int main(int argc, char** argv) {
@@ -297,8 +300,12 @@ int main(int argc, char** argv) {
 
     Features_CCA f_cca_wrapper(i0, i1, j0, j1, p_cca_roi_max1);
 
-    CCL_data_t* ccl_data0 = CCL_LSL_alloc_data(i0, i1, j0, j1);
-    CCL_data_t* ccl_data1 = CCL_LSL_alloc_data(i0, i1, j0, j1);
+    //CCL_data_t* ccl_data0 = CCL_LSL_alloc_data(i0, i1, j0, j1);
+    //CCL_data_t* ccl_data1 = CCL_LSL_alloc_data(i0, i1, j0, j1);
+    
+    CCL ccl_wrapper0(i0, i1, j0, j1, p_cca_roi_max1);
+    CCL ccl_wrapper1(i0, i1, j0, j1, p_cca_roi_max1);
+
     //kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max2);
 
     KNN knn(p_cca_roi_max2, p_knn_k, p_knn_d, p_knn_s);
@@ -355,8 +362,8 @@ int main(int argc, char** argv) {
     }
     //morpho_init_data(morpho_data0);
     //morpho_init_data(morpho_data1);
-    CCL_LSL_init_data(ccl_data0);
-    CCL_LSL_init_data(ccl_data1);
+    //CCL_LSL_init_data(ccl_data0);
+    //CCL_LSL_init_data(ccl_data1);
     features_init_RoIs(RoIs_tmp0, p_cca_roi_max1);
     features_init_RoIs(RoIs_tmp1, p_cca_roi_max1);
     features_init_RoIs(RoIs0, p_cca_roi_max2);
@@ -432,9 +439,14 @@ int main(int argc, char** argv) {
 
             // step 3: connected components labeling (CCL)
             TIME_POINT(ccl_b);
-            const uint32_t n_RoIs_tmp0 = CCL_LSL_apply(ccl_data0, (const uint8_t**)IB0, L10, 0);
-            assert(n_RoIs_tmp0 <= (uint32_t)p_cca_roi_max1);
-            TIME_POINT(ccl_e);
+            //const uint32_t n_RoIs_tmp0 = CCL_LSL_apply(ccl_data0, (const uint8_t**)IB0, L10, 0);
+            //assert(n_RoIs_tmp0 <= (uint32_t)p_cca_roi_max1);
+	    uint32_t n_RoIs_tmp0;
+	    ccl_wrapper0["apply::in_img"].bind(IB0[0]);
+	    ccl_wrapper0["apply::out_labels"].bind(L10[0]);
+	    ccl_wrapper0["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp0);
+	    ccl_wrapper0("apply").exec();
+	    TIME_POINT(ccl_e);
             TIME_ACC(ccl_a, ccl_b, ccl_e);
 
             // step 4: connected components analysis (CCA): from image of labels to "regions of interest" (RoIs)
@@ -485,8 +497,14 @@ int main(int argc, char** argv) {
 
         // step 3: connected components labeling (CCL)
         TIME_POINT(ccl_b);
-        const uint32_t n_RoIs_tmp1 = CCL_LSL_apply(ccl_data1, (const uint8_t**)IB1, L11, 0);
-        assert(n_RoIs_tmp1 <= (uint32_t)p_cca_roi_max1);
+        //const uint32_t n_RoIs_tmp1 = CCL_LSL_apply(ccl_data1, (const uint8_t**)IB1, L11, 0);
+        //assert(n_RoIs_tmp1 <= (uint32_t)p_cca_roi_max1);
+	
+	uint32_t n_RoIs_tmp1;
+	ccl_wrapper1["apply::in_img"].bind(IB1[0]);
+	ccl_wrapper1["apply::out_labels"].bind(L11[0]);
+	ccl_wrapper1["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp1);
+	ccl_wrapper1("apply").exec();
         TIME_POINT(ccl_e);
         TIME_ACC(ccl_a, ccl_b, ccl_e);
 
@@ -675,8 +693,8 @@ int main(int argc, char** argv) {
     features_free_RoIs(RoIs_tmp1);
     features_free_RoIs(RoIs0);
     features_free_RoIs(RoIs1);
-    CCL_LSL_free_data(ccl_data0);
-    CCL_LSL_free_data(ccl_data1);
+    //CCL_LSL_free_data(ccl_data0);
+    //CCL_LSL_free_data(ccl_data1);
     //kNN_free_data(knn_data);
     tracking_free_data(tracking_data);
 
