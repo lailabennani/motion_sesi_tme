@@ -299,6 +299,8 @@ int main(int argc, char** argv) {
     RoI_t* RoIs1 = features_alloc_RoIs(p_cca_roi_max2);
 
     Features_CCA f_cca_wrapper(i0, i1, j0, j1, p_cca_roi_max1);
+    
+    Features_filter f_filter_wrapper(i0, i1, j0, j1, p_cca_roi_max1, p_flt_s_min, p_flt_s_max, p_cca_roi_max2);
 
     //CCL_data_t* ccl_data0 = CCL_LSL_alloc_data(i0, i1, j0, j1);
     //CCL_data_t* ccl_data1 = CCL_LSL_alloc_data(i0, i1, j0, j1);
@@ -463,11 +465,17 @@ int main(int argc, char** argv) {
 
             // step 5: surface filtering (rm too small and too big RoIs)
             TIME_POINT(flt_b);
-            n_RoIs0 = features_filter_surface((const uint32_t**)L10, L20, i0, i1, j0, j1, RoIs_tmp0, n_RoIs_tmp0,
-                                              p_flt_s_min, p_flt_s_max);
-            assert(n_RoIs0 <= (uint32_t)p_cca_roi_max2);
+            //n_RoIs0 = features_filter_surface((const uint32_t**)L10, L20, i0, i1, j0, j1, RoIs_tmp0, n_RoIs_tmp0, p_flt_s_min, p_flt_s_max);
+            //assert(n_RoIs0 <= (uint32_t)p_cca_roi_max2);
             // features_labels_zero_init(RoIs_tmp->basic, L1);
-            features_shrink_basic(RoIs_tmp0, n_RoIs_tmp0, RoIs0);
+            //features_shrink_basic(RoIs_tmp0, n_RoIs_tmp0, RoIs0);
+	    
+	    f_filter_wrapper["filter::in_labels"].bind(L10[0]);
+	    f_filter_wrapper["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp0);
+	    f_filter_wrapper["filter::out_labels"].bind(L20[0]);
+	    f_filter_wrapper["filter::out_RoIs"].bind((uint8_t*)RoIs0);
+	    f_filter_wrapper["filter::out_n_RoIs"].bind(&n_RoIs0);
+
             TIME_POINT(flt_e);
             TIME_ACC(flt_a, flt_b, flt_e);
         }
@@ -522,12 +530,20 @@ int main(int argc, char** argv) {
 
         // step 5: surface filtering (rm too small and too big RoIs)
         TIME_POINT(flt_b);
-        const uint32_t n_RoIs1 = features_filter_surface((const uint32_t**)L11, L21, i0, i1, j0, j1, RoIs_tmp1,
-                                                         n_RoIs_tmp1, p_flt_s_min, p_flt_s_max);
-        assert(n_RoIs1 <= (uint32_t)p_cca_roi_max2);
+        //const uint32_t n_RoIs1 = features_filter_surface((const uint32_t**)L11, L21, i0, i1, j0, j1, RoIs_tmp1,                                                         n_RoIs_tmp1, p_flt_s_min, p_flt_s_max);
+        //assert(n_RoIs1 <= (uint32_t)p_cca_roi_max2);
         // features_labels_zero_init(RoIs_tmp->basic, L1);
-        features_shrink_basic(RoIs_tmp1, n_RoIs_tmp1, RoIs1);
-        TIME_POINT(flt_e);
+        //features_shrink_basic(RoIs_tmp1, n_RoIs_tmp1, RoIs1);
+        
+	uint32_t n_RoIs1;
+							 
+	f_filter_wrapper["filter::in_labels"].bind(L11[0]);
+	f_filter_wrapper["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp1);
+	f_filter_wrapper["filter::out_labels"].bind(L21[0]);
+	f_filter_wrapper["filter::out_RoIs"].bind((uint8_t*)RoIs1);
+	f_filter_wrapper["filter::out_n_RoIs"].bind(&n_RoIs1);
+
+	TIME_POINT(flt_e);
         TIME_ACC(flt_a, flt_b, flt_e);
 
         // ----------------------------- //
