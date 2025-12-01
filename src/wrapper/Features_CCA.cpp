@@ -25,11 +25,14 @@ Features_CCA::Features_CCA(const int i0, const int i1, const int j0, const int j
         auto &cca = static_cast<Features_CCA&>(m);
 
         const uint32_t **in_labels = p[si_labels].get_2d_dataptr<const uint32_t>();
+        auto in_n_RoIs = p[si_n_RoIs].get_dataptr<const uint32_t>()[0]; // not sure. verify
         //uint32_t **out_labels = p[so_labels].get_2d_dataptr<uint32_t>();
         RoI_t *out_RoIs = p[so_RoIs].get_dataptr<RoI_t>(); // verify
-        auto n_RoIs = p[si_n_RoIs].get_dataptr<const uint32_t>()[0]; // not sure. verify
+        uint32_t *out_n_RoIs = p[so_n_RoIs].get_dataptr<uint32_t>();
 
-        features_extract(in_labels, cca.i0, cca.i1, cca.j0, cca.j1, out_RoIs, n_RoIs);
+        features_extract(in_labels, cca.i0, cca.i1, cca.j0, cca.j1, out_RoIs, in_n_RoIs);
+
+        *out_n_RoIs = in_n_RoIs;
 
         //for (int i = cca.i0; i <= cca.i1; i++)
         //    memset(out_labels[i], 0, (cca.j1 - cca.j0 + 1) * sizeof(uint32_t)); // verify

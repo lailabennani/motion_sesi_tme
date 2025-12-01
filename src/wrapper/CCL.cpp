@@ -15,7 +15,7 @@ CCL::CCL(const int i0, const int i1, const int j0, const int j1, const int p_cca
 	auto so_n_RoIs = this->template create_socket_out<uint32_t>(t, "out_n_RoIs_tmp0", 1);
 	this->create_codelet(t,
 		[si_img, so_labels, so_n_RoIs]
-			(spu::module::Module &m, spu::runtime::Task &p, const size_t frame_id) -> int{
+			(spu::module::Module &m, spu::runtime::Task &p, const size_t frame_id) -> int {
 		auto &ccl = static_cast<CCL&>(m);
 
 		const uint8_t ** in_img = p[si_img].get_2d_dataptr<const uint8_t>();
@@ -31,7 +31,7 @@ CCL::CCL(const int i0, const int i1, const int j0, const int j1, const int p_cca
 	});
 }
 
-CCL::~CCL(){
+CCL::~CCL() {
 	CCL_LSL_free_data(this->CCL_data);
 }
 

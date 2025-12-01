@@ -300,7 +300,8 @@ int main(int argc, char** argv) {
 
     Features_CCA f_cca_wrapper(i0, i1, j0, j1, p_cca_roi_max1);
     
-    Features_filter f_filter_wrapper(i0, i1, j0, j1, p_cca_roi_max1, p_flt_s_min, p_flt_s_max, p_cca_roi_max2);
+    Features_filter f_filter_wrapper0(i0, i1, j0, j1, p_cca_roi_max1, p_flt_s_min, p_flt_s_max, p_cca_roi_max2);
+    Features_filter f_filter_wrapper1(i0, i1, j0, j1, p_cca_roi_max1, p_flt_s_min, p_flt_s_max, p_cca_roi_max2);
 
     //CCL_data_t* ccl_data0 = CCL_LSL_alloc_data(i0, i1, j0, j1);
     //CCL_data_t* ccl_data1 = CCL_LSL_alloc_data(i0, i1, j0, j1);
@@ -443,12 +444,12 @@ int main(int argc, char** argv) {
             TIME_POINT(ccl_b);
             //const uint32_t n_RoIs_tmp0 = CCL_LSL_apply(ccl_data0, (const uint8_t**)IB0, L10, 0);
             //assert(n_RoIs_tmp0 <= (uint32_t)p_cca_roi_max1);
-	    uint32_t n_RoIs_tmp0;
-	    ccl_wrapper0["apply::in_img"].bind(IB0[0]);
-	    ccl_wrapper0["apply::out_labels"].bind(L10[0]);
-	    ccl_wrapper0["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp0);
-	    ccl_wrapper0("apply").exec();
-	    TIME_POINT(ccl_e);
+            uint32_t n_RoIs_tmp0;
+            ccl_wrapper0["apply::in_img"].bind(IB0[0]);
+            ccl_wrapper0["apply::out_labels"].bind(L10[0]);
+            ccl_wrapper0["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp0);
+            ccl_wrapper0("apply").exec();
+            TIME_POINT(ccl_e);
             TIME_ACC(ccl_a, ccl_b, ccl_e);
 
             // step 4: connected components analysis (CCA): from image of labels to "regions of interest" (RoIs)
@@ -469,12 +470,17 @@ int main(int argc, char** argv) {
             //assert(n_RoIs0 <= (uint32_t)p_cca_roi_max2);
             // features_labels_zero_init(RoIs_tmp->basic, L1);
             //features_shrink_basic(RoIs_tmp0, n_RoIs_tmp0, RoIs0);
-	    
-	    f_filter_wrapper["filter::in_labels"].bind(L10[0]);
-	    f_filter_wrapper["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp0);
-	    f_filter_wrapper["filter::out_labels"].bind(L20[0]);
-	    f_filter_wrapper["filter::out_RoIs"].bind((uint8_t*)RoIs0);
-	    f_filter_wrapper["filter::out_n_RoIs"].bind(&n_RoIs0);
+            printf("ffilter...\n");
+            f_filter_wrapper0["filter::in_labels"].bind(L10[0]);
+            f_filter_wrapper0["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp0);
+            f_filter_wrapper0["filter::in_n_RoIs"].bind(&n_RoIs_tmp0);
+
+            if (p_ccl_fra_path)
+                f_filter_wrapper0["filter::out_labels"].bind(L20[0]);
+
+            f_filter_wrapper0["filter::out_RoIs"].bind((uint8_t*)RoIs0);
+            f_filter_wrapper0["filter::out_n_RoIs"].bind(&n_RoIs0);
+            f_filter_wrapper0("filter").exec();
 
             TIME_POINT(flt_e);
             TIME_ACC(flt_a, flt_b, flt_e);
@@ -508,11 +514,11 @@ int main(int argc, char** argv) {
         //const uint32_t n_RoIs_tmp1 = CCL_LSL_apply(ccl_data1, (const uint8_t**)IB1, L11, 0);
         //assert(n_RoIs_tmp1 <= (uint32_t)p_cca_roi_max1);
 	
-	uint32_t n_RoIs_tmp1;
-	ccl_wrapper1["apply::in_img"].bind(IB1[0]);
-	ccl_wrapper1["apply::out_labels"].bind(L11[0]);
-	ccl_wrapper1["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp1);
-	ccl_wrapper1("apply").exec();
+        uint32_t n_RoIs_tmp1;
+        ccl_wrapper1["apply::in_img"].bind(IB1[0]);
+        ccl_wrapper1["apply::out_labels"].bind(L11[0]);
+        ccl_wrapper1["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp1);
+        ccl_wrapper1("apply").exec();
         TIME_POINT(ccl_e);
         TIME_ACC(ccl_a, ccl_b, ccl_e);
 
@@ -535,15 +541,20 @@ int main(int argc, char** argv) {
         // features_labels_zero_init(RoIs_tmp->basic, L1);
         //features_shrink_basic(RoIs_tmp1, n_RoIs_tmp1, RoIs1);
         
-	uint32_t n_RoIs1;
-							 
-	f_filter_wrapper["filter::in_labels"].bind(L11[0]);
-	f_filter_wrapper["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp1);
-	f_filter_wrapper["filter::out_labels"].bind(L21[0]);
-	f_filter_wrapper["filter::out_RoIs"].bind((uint8_t*)RoIs1);
-	f_filter_wrapper["filter::out_n_RoIs"].bind(&n_RoIs1);
+        uint32_t n_RoIs1;
+        printf("ffilter1...\n");
+        f_filter_wrapper1["filter::in_labels"].bind(L11[0]);
+        f_filter_wrapper1["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp1);
+        f_filter_wrapper1["filter::in_n_RoIs"].bind(&n_RoIs_tmp1);
 
-	TIME_POINT(flt_e);
+        if (p_ccl_fra_path)
+            f_filter_wrapper1["filter::out_labels"].bind(L21[0]);
+
+        f_filter_wrapper1["filter::out_RoIs"].bind((uint8_t*)RoIs1);
+        f_filter_wrapper1["filter::out_n_RoIs"].bind(&n_RoIs1);
+        f_filter_wrapper1("filter").exec();
+
+        TIME_POINT(flt_e);
         TIME_ACC(flt_a, flt_b, flt_e);
 
         // ----------------------------- //
@@ -559,8 +570,8 @@ int main(int argc, char** argv) {
         knn["match::in_n_RoIs1"].bind(&n_RoIs1);
         knn["match::out_RoIs0"].bind((uint8_t*)RoIs0);
         knn["match::out_RoIs1"].bind((uint8_t*)RoIs1);
-        knn["match::in_n_RoIs1"].bind(&n_RoIs1);
-        knn["match::in_n_RoIs0"].bind(&n_RoIs0);
+        knn["match::out_n_RoIs1"].bind(&n_RoIs1);
+        knn["match::out_n_RoIs0"].bind(&n_RoIs0);
         knn("match").exec();
         TIME_POINT(knn_e);
         TIME_ACC(knn_a, knn_b, knn_e);

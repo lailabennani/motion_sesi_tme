@@ -27,24 +27,24 @@ KNN::KNN(const size_t max_sz, const int k, const uint32_t max_dist, const float 
 
             const RoI_t *in_RoIs0 = p[si_RoIs0].get_dataptr<const RoI_t>();
             const RoI_t *in_RoIs1 = p[si_RoIs1].get_dataptr<const RoI_t>();
-            uint32_t n_RoIs0  = p[si_n_RoIs0].get_dataptr<const uint32_t>()[0];
-            uint32_t n_RoIs1  = p[si_n_RoIs1].get_dataptr<const uint32_t>()[0];
+            uint32_t in_n_RoIs0  = p[si_n_RoIs0].get_dataptr<const uint32_t>()[0];
+            uint32_t in_n_RoIs1  = p[si_n_RoIs1].get_dataptr<const uint32_t>()[0];
 
             RoI_t *out_RoIs0 = p[so_RoIs0].get_dataptr<RoI_t>();
             RoI_t *out_RoIs1 = p[so_RoIs1].get_dataptr<RoI_t>();
             uint32_t *out_n_RoIs0 = p[so_n_RoIs0].get_dataptr<uint32_t>();
             uint32_t *out_n_RoIs1 = p[so_n_RoIs1].get_dataptr<uint32_t>();
 
-            memcpy(out_RoIs0, in_RoIs0, n_RoIs0 * sizeof(RoI_t));
-            memcpy(out_RoIs1, in_RoIs1, n_RoIs1 * sizeof(RoI_t));
+            memcpy(out_RoIs0, in_RoIs0, in_n_RoIs0 * sizeof(RoI_t));
+            memcpy(out_RoIs1, in_RoIs1, in_n_RoIs1 * sizeof(RoI_t));
 
             kNN_match(knn.knn_data,
-                      out_RoIs0, n_RoIs0,
-                      out_RoIs1, n_RoIs1,
+                      out_RoIs0, in_n_RoIs0,
+                      out_RoIs1, in_n_RoIs1,
                       k, max_dist, min_ratio_S);
 
-            *out_n_RoIs0 = n_RoIs0;
-            *out_n_RoIs1 = n_RoIs1;
+            *out_n_RoIs0 = in_n_RoIs0;
+            *out_n_RoIs1 = in_n_RoIs1;
 
             return spu::runtime::status_t::SUCCESS;
         });
