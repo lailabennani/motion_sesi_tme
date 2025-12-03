@@ -293,12 +293,13 @@ int main(int argc, char** argv) {
     Morpho morpho_wrapper0(i0, i1, j0, j1);
     Morpho morpho_wrapper1(i0, i1, j0, j1);
     
-    RoI_t* RoIs_tmp0 = features_alloc_RoIs(p_cca_roi_max1);
-    RoI_t* RoIs0 = features_alloc_RoIs(p_cca_roi_max2);
-    RoI_t* RoIs_tmp1 = features_alloc_RoIs(p_cca_roi_max1);
-    RoI_t* RoIs1 = features_alloc_RoIs(p_cca_roi_max2);
+    //RoI_t* RoIs_tmp0 = features_alloc_RoIs(p_cca_roi_max1);
+    //RoI_t* RoIs0 = features_alloc_RoIs(p_cca_roi_max2);
+    //RoI_t* RoIs_tmp1 = features_alloc_RoIs(p_cca_roi_max1);
+    //RoI_t* RoIs1 = features_alloc_RoIs(p_cca_roi_max2);
 
-    Features_CCA f_cca_wrapper(i0, i1, j0, j1, p_cca_roi_max1);
+    Features_CCA f_cca_wrapper0(i0, i1, j0, j1, p_cca_roi_max1);
+    Features_CCA f_cca_wrapper1(i0, i1, j0, j1, p_cca_roi_max1);
     
     Features_filter f_filter_wrapper0(i0, i1, j0, j1, p_cca_roi_max1, p_flt_s_min, p_flt_s_max, p_cca_roi_max2);
     Features_filter f_filter_wrapper1(i0, i1, j0, j1, p_cca_roi_max1, p_flt_s_min, p_flt_s_max, p_cca_roi_max2);
@@ -319,16 +320,17 @@ int main(int argc, char** argv) {
     const tracking_data_t *tracking_data = tracking_wrapper.get_tracking_data(); // flemme de changer dans le sucessif
     uint8_t **IG0 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t - 1
     uint8_t **IG1 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t
-    uint8_t **IB0 = ui8matrix(i0, i1, j0, j1); // binary image (after Sigma-Delta) at t - 1
-    uint8_t **IB1 = ui8matrix(i0, i1, j0, j1); // binary image (after Sigma-Delta) at t
-    uint32_t **L10 = ui32matrix(i0, i1, j0, j1); // labels (CCL) at t - 1
-    uint32_t **L11 = ui32matrix(i0, i1, j0, j1); // labels (CCL) at t
-    uint32_t **L20 = NULL; // labels (CCL + surface filter) at t - 1
-    uint32_t **L21 = NULL; // labels (CCL + surface filter) at t
-    if (p_ccl_fra_path) {
-        L20 = ui32matrix(i0, i1, j0, j1);
-        L21 = ui32matrix(i0, i1, j0, j1);
-    }
+    //uint8_t **IB0 = ui8matrix(i0, i1, j0, j1); // binary image (after Sigma-Delta) at t - 1
+    //uint8_t **IB1 = ui8matrix(i0, i1, j0, j1); // binary image (after Sigma-Delta) at t
+    //uint32_t **L10 = ui32matrix(i0, i1, j0, j1); // labels (CCL) at t - 1
+    //uint32_t **L11 = ui32matrix(i0, i1, j0, j1); // labels (CCL) at t
+    //uint32_t **L20 = NULL; // labels (CCL + surface filter) at t - 1
+    //uint32_t **L21 = NULL; // labels (CCL + surface filter) at t
+
+    //if (p_ccl_fra_path) {
+    //    L20 = ui32matrix(i0, i1, j0, j1);
+    //    L21 = ui32matrix(i0, i1, j0, j1);
+    //}
 
     Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, p_cca_roi_max2, tracking_data);
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, p_cca_roi_max2);
@@ -358,31 +360,35 @@ int main(int argc, char** argv) {
 
     zero_ui8matrix(IG0, i0, i1, j0, j1);
     zero_ui8matrix(IG1, i0, i1, j0, j1);
-    zero_ui8matrix(IB0, i0, i1, j0, j1);
-    zero_ui8matrix(IB1, i0, i1, j0, j1);
-    zero_ui32matrix(L10, i0, i1, j0, j1);
-    zero_ui32matrix(L11, i0, i1, j0, j1);
-    if (p_ccl_fra_path) {
-        zero_ui32matrix(L20, i0, i1, j0, j1);
-        zero_ui32matrix(L21, i0, i1, j0, j1);
-    }
+    //zero_ui8matrix(IB0, i0, i1, j0, j1);
+    //zero_ui8matrix(IB1, i0, i1, j0, j1);
+    //zero_ui32matrix(L10, i0, i1, j0, j1);
+    //zero_ui32matrix(L11, i0, i1, j0, j1);
+    //if (p_ccl_fra_path) {
+    //    zero_ui32matrix(L20, i0, i1, j0, j1);
+    //    zero_ui32matrix(L21, i0, i1, j0, j1);
+    //}
     //morpho_init_data(morpho_data0);
     //morpho_init_data(morpho_data1);
     //CCL_LSL_init_data(ccl_data0);
     //CCL_LSL_init_data(ccl_data1);
-    features_init_RoIs(RoIs_tmp0, p_cca_roi_max1);
-    features_init_RoIs(RoIs_tmp1, p_cca_roi_max1);
-    features_init_RoIs(RoIs0, p_cca_roi_max2);
-    features_init_RoIs(RoIs1, p_cca_roi_max2);
+    //features_init_RoIs(RoIs_tmp0, p_cca_roi_max1);
+    //features_init_RoIs(RoIs_tmp1, p_cca_roi_max1);
+    //features_init_RoIs(RoIs0, p_cca_roi_max2);
+    //features_init_RoIs(RoIs1, p_cca_roi_max2);
     //kNN_init_data(knn_data);
     //tracking_init_data(tracking_data);
 
     if (visu) {
-        uint32_t n_RoIs1 = 0;
-        (*visu)["display::in_frame"].bind(&cur_fra);
+        //uint32_t n_RoIs1 = 0;
+        //(*visu)["display::in_frame"].bind(&cur_fra);
+        //(*visu)["display::in_img"].bind(IG1[0]);
+        //(*visu)["display::in_RoIs"].bind((uint8_t*)RoIs1);
+        //(*visu)["display::in_n_RoIs"].bind(&n_RoIs1);
+        (*visu)["display::in_frame"] = video["generate::out_frame"];
         (*visu)["display::in_img"].bind(IG1[0]);
-        (*visu)["display::in_RoIs"].bind((uint8_t*)RoIs1);
-        (*visu)["display::in_n_RoIs"].bind(&n_RoIs1);
+        (*visu)["display::in_RoIs"] = knn["match::out_RoIs"];
+        (*visu)["display::in_n_RoIs"] = knn["match::out_n_RoIs"];
         (*visu)("display").exec();
     }
 
@@ -398,6 +404,7 @@ int main(int argc, char** argv) {
     TIME_SETA(dec_a); TIME_SETA(sd_a); TIME_SETA(mrp_a); TIME_SETA(ccl_a); TIME_SETA(cca_a); TIME_SETA(flt_a);
     TIME_SETA(knn_a); TIME_SETA(trk_a); TIME_SETA(log_a); TIME_SETA(vis_a);
     TIME_POINT(start_compute);
+
     while (1) {
         // step 0: video decoding
         TIME_POINT(dec_b);
@@ -421,13 +428,13 @@ int main(int argc, char** argv) {
         // -- Processing at t - 1 -- //
         // ------------------------- //
 
-        uint32_t n_RoIs0 = 0;
+        //uint32_t n_RoIs0 = 0;
         if (n_processed_frames > 0) {
             // step 1: motion detection (per pixel) with Sigma-Delta algorithm
             TIME_POINT(sd_b);
             //sigma_delta_compute(sd_data0, (const uint8_t**)IG0, IB0, i0, i1, j0, j1, p_sd_n);
             sd_wrapper0["compute::in_img"].bind(IG0[0]);
-            sd_wrapper0["compute::out_img"].bind(IB0[0]);
+            //sd_wrapper0["compute::out_img"].bind(IB0[0]);
             sd_wrapper0("compute").exec();
             TIME_POINT(sd_e);
             TIME_ACC(sd_a, sd_b, sd_e);
@@ -436,8 +443,9 @@ int main(int argc, char** argv) {
             TIME_POINT(mrp_b);
             //morpho_compute_opening3(morpho_data0, (const uint8_t**)IB0, IB0, i0, i1, j0, j1);
             //morpho_compute_closing3(morpho_data0, (const uint8_t**)IB0, IB0, i0, i1, j0, j1);
-            morpho_wrapper0["compute::in_img"].bind(IB0[0]);
-            morpho_wrapper0["compute::out_img"].bind(IB0[0]);
+            //morpho_wrapper0["compute::in_img"].bind(IB0[0]);
+            morpho_wrapper0["compute::in_img"] = sd_wrapper0["compute::out_img"];
+            //morpho_wrapper0["compute::out_img"].bind(IB0[0]);
             morpho_wrapper0("compute").exec();
 
             TIME_POINT(mrp_e);
@@ -447,10 +455,11 @@ int main(int argc, char** argv) {
             TIME_POINT(ccl_b);
             //const uint32_t n_RoIs_tmp0 = CCL_LSL_apply(ccl_data0, (const uint8_t**)IB0, L10, 0);
             //assert(n_RoIs_tmp0 <= (uint32_t)p_cca_roi_max1);
-            uint32_t n_RoIs_tmp0;
-            ccl_wrapper0["apply::in_img"].bind(IB0[0]);
-            ccl_wrapper0["apply::out_labels"].bind(L10[0]);
-            ccl_wrapper0["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp0);
+            //uint32_t n_RoIs_tmp0;
+            //ccl_wrapper0["apply::in_img"].bind(IB0[0]);
+            ccl_wrapper0["apply::in_img"] = morpho_wrapper0["compute::out_img"];
+            //ccl_wrapper0["apply::out_labels"].bind(L10[0]);
+            //ccl_wrapper0["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp0);
             ccl_wrapper0("apply").exec();
             TIME_POINT(ccl_e);
             TIME_ACC(ccl_a, ccl_b, ccl_e);
@@ -458,12 +467,14 @@ int main(int argc, char** argv) {
             // step 4: connected components analysis (CCA): from image of labels to "regions of interest" (RoIs)
             TIME_POINT(cca_b);
             //features_extract((const uint32_t**)L10, i0, i1, j0, j1, RoIs_tmp0, n_RoIs_tmp0);
-            f_cca_wrapper["extract::in_labels"].bind(L10[0]);
-            f_cca_wrapper["extract::in_n_RoIs"].bind(&n_RoIs_tmp0);
-            f_cca_wrapper["extract::out_RoIs"].bind((uint8_t*)RoIs_tmp0);
+            //f_cca_wrapper["extract::in_labels"].bind(L10[0]);
+            //f_cca_wrapper["extract::in_n_RoIs"].bind(&n_RoIs_tmp0);            
+            f_cca_wrapper0["extract::in_labels"] = ccl_wrapper0["apply::out_labels"];
+            f_cca_wrapper0["extract::in_n_RoIs"] = ccl_wrapper0["apply::out_n_RoIs_tmp0"];
+            //f_cca_wrapper0["extract::out_RoIs"].bind((uint8_t*)RoIs_tmp0);
             //f_cca_wrapper["extract::out_labels"].bind(L20[0]); // for later use if needed
-            f_cca_wrapper["extract::out_n_RoIs"].bind(&n_RoIs_tmp0);
-            f_cca_wrapper("extract").exec();
+            //f_cca_wrapper0["extract::out_n_RoIs"].bind(&n_RoIs_tmp0);
+            f_cca_wrapper0("extract").exec();
             TIME_POINT(cca_e);
             TIME_ACC(cca_a, cca_b, cca_e);
 
@@ -474,15 +485,19 @@ int main(int argc, char** argv) {
             // features_labels_zero_init(RoIs_tmp->basic, L1);
             //features_shrink_basic(RoIs_tmp0, n_RoIs_tmp0, RoIs0);
 
-            f_filter_wrapper0["filter::in_labels"].bind(L10[0]);
-            f_filter_wrapper0["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp0);
-            f_filter_wrapper0["filter::in_n_RoIs"].bind(&n_RoIs_tmp0);
+            //f_filter_wrapper0["filter::in_labels"].bind(L10[0]);
+            //f_filter_wrapper0["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp0);
+            //f_filter_wrapper0["filter::in_n_RoIs"].bind(&n_RoIs_tmp0);
+            f_filter_wrapper0["filter::in_labels"] = ccl_wrapper0["apply::out_labels"];
+            f_filter_wrapper0["filter::in_RoIs"] = f_cca_wrapper0["extract::out_RoIs"];
+            f_filter_wrapper0["filter::in_n_RoIs"] = f_cca_wrapper0["extract::out_n_RoIs"];
 
-            if (p_ccl_fra_path)
-                f_filter_wrapper0["filter::out_labels"].bind(L20[0]);
 
-            f_filter_wrapper0["filter::out_RoIs"].bind((uint8_t*)RoIs0);
-            f_filter_wrapper0["filter::out_n_RoIs"].bind(&n_RoIs0);
+            //if (p_ccl_fra_path)
+            //    f_filter_wrapper0["filter::out_labels"].bind(L20[0]);
+
+            //f_filter_wrapper0["filter::out_RoIs"].bind((uint8_t*)RoIs0);
+            //f_filter_wrapper0["filter::out_n_RoIs"].bind(&n_RoIs0);
             f_filter_wrapper0("filter").exec();
 
             TIME_POINT(flt_e);
@@ -497,7 +512,7 @@ int main(int argc, char** argv) {
         TIME_POINT(sd_b);
         //sigma_delta_compute(sd_data1, (const uint8_t**)IG1, IB1, i0, i1, j0, j1, p_sd_n);
         sd_wrapper1["compute::in_img"].bind(IG1[0]);
-        sd_wrapper1["compute::out_img"].bind(IB1[0]);
+        //sd_wrapper1["compute::out_img"].bind(IB1[0]);
         sd_wrapper1("compute").exec();
         TIME_POINT(sd_e);
         TIME_ACC(sd_a, sd_b, sd_e);
@@ -506,8 +521,9 @@ int main(int argc, char** argv) {
         TIME_POINT(mrp_b);
         //morpho_compute_opening3(morpho_data1, (const uint8_t**)IB1, IB1, i0, i1, j0, j1);
         //morpho_compute_closing3(morpho_data1, (const uint8_t**)IB1, IB1, i0, i1, j0, j1);
-        morpho_wrapper1["compute::in_img"].bind(IB1[0]);
-        morpho_wrapper1["compute::out_img"].bind(IB1[0]);
+        //morpho_wrapper1["compute::in_img"].bind(IB1[0]);
+        morpho_wrapper1["compute::in_img"] = sd_wrapper1["compute::out_img"];
+        //morpho_wrapper1["compute::out_img"].bind(IB1[0]);
         morpho_wrapper1("compute").exec();
         TIME_POINT(mrp_e);
         TIME_ACC(mrp_a, mrp_b, mrp_e);
@@ -517,10 +533,11 @@ int main(int argc, char** argv) {
         //const uint32_t n_RoIs_tmp1 = CCL_LSL_apply(ccl_data1, (const uint8_t**)IB1, L11, 0);
         //assert(n_RoIs_tmp1 <= (uint32_t)p_cca_roi_max1);
 	
-        uint32_t n_RoIs_tmp1;
-        ccl_wrapper1["apply::in_img"].bind(IB1[0]);
-        ccl_wrapper1["apply::out_labels"].bind(L11[0]);
-        ccl_wrapper1["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp1);
+        //uint32_t n_RoIs_tmp1;
+        //ccl_wrapper1["apply::in_img"].bind(IB1[0]);
+        ccl_wrapper1["apply::in_img"] = morpho_wrapper1["compute::out_img"];
+        //ccl_wrapper1["apply::out_labels"].bind(L11[0]);
+        //ccl_wrapper1["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp1);
         ccl_wrapper1("apply").exec();
         TIME_POINT(ccl_e);
         TIME_ACC(ccl_a, ccl_b, ccl_e);
@@ -528,12 +545,14 @@ int main(int argc, char** argv) {
         // step 4: connected components analysis (CCA): from image of labels to "regions of interest" (RoIs)
         TIME_POINT(cca_b);
         //features_extract((const uint32_t**)L11, i0, i1, j0, j1, RoIs_tmp1, n_RoIs_tmp1);
-        f_cca_wrapper["extract::in_labels"].bind(L11[0]);
-        f_cca_wrapper["extract::in_n_RoIs"].bind(&n_RoIs_tmp1);
-        f_cca_wrapper["extract::out_RoIs"].bind((uint8_t*)RoIs_tmp1);
+        //f_cca_wrapper["extract::in_labels"].bind(L11[0]);
+        //f_cca_wrapper["extract::in_n_RoIs"].bind(&n_RoIs_tmp1);
+        f_cca_wrapper1["extract::in_labels"] = ccl_wrapper1["apply::out_labels"];
+        f_cca_wrapper1["extract::in_n_RoIs"] = ccl_wrapper1["apply::out_n_RoIs_tmp0"];
+        //f_cca_wrapper1["extract::out_RoIs"].bind((uint8_t*)RoIs_tmp1);
         //f_cca_wrapper["extract::out_labels"].bind(L21[0]); // for later use if needed 
-        f_cca_wrapper["extract::out_n_RoIs"].bind(&n_RoIs_tmp1);
-        f_cca_wrapper("extract").exec();
+        //f_cca_wrapper1["extract::out_n_RoIs"].bind(&n_RoIs_tmp1);
+        f_cca_wrapper1("extract").exec();
         TIME_POINT(cca_e);
         TIME_ACC(cca_a, cca_b, cca_e);
 
@@ -544,16 +563,19 @@ int main(int argc, char** argv) {
         // features_labels_zero_init(RoIs_tmp->basic, L1);
         //features_shrink_basic(RoIs_tmp1, n_RoIs_tmp1, RoIs1);
         
-        uint32_t n_RoIs1;
-        f_filter_wrapper1["filter::in_labels"].bind(L11[0]);
-        f_filter_wrapper1["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp1);
-        f_filter_wrapper1["filter::in_n_RoIs"].bind(&n_RoIs_tmp1);
+        //uint32_t n_RoIs1;
+        //f_filter_wrapper1["filter::in_labels"].bind(L11[0]);
+        //f_filter_wrapper1["filter::in_RoIs"].bind((uint8_t*)RoIs_tmp1);
+        //f_filter_wrapper1["filter::in_n_RoIs"].bind(&n_RoIs_tmp1);
+        f_filter_wrapper1["filter::in_labels"] = ccl_wrapper1["apply::out_labels"];
+        f_filter_wrapper1["filter::in_RoIs"] = f_cca_wrapper1["extract::out_RoIs"];
+        f_filter_wrapper1["filter::in_n_RoIs"] = f_cca_wrapper1["extract::out_n_RoIs"];
 
-        if (p_ccl_fra_path)
-            f_filter_wrapper1["filter::out_labels"].bind(L21[0]);
+        //if (p_ccl_fra_path)
+        //    f_filter_wrapper1["filter::out_labels"].bind(L21[0]);
 
-        f_filter_wrapper1["filter::out_RoIs"].bind((uint8_t*)RoIs1);
-        f_filter_wrapper1["filter::out_n_RoIs"].bind(&n_RoIs1);
+        //f_filter_wrapper1["filter::out_RoIs"].bind((uint8_t*)RoIs1);
+        //f_filter_wrapper1["filter::out_n_RoIs"].bind(&n_RoIs1);
         f_filter_wrapper1("filter").exec();
 
         TIME_POINT(flt_e);
@@ -566,14 +588,18 @@ int main(int argc, char** argv) {
         // step 6: k-NN matching (RoIs associations)
         TIME_POINT(knn_b);
         //kNN_match(knn_data, RoIs0, n_RoIs0, RoIs1, n_RoIs1, p_knn_k, p_knn_d, p_knn_s);
-        knn["match::in_RoIs0"].bind((uint8_t*)RoIs0);
-        knn["match::in_RoIs1"].bind((uint8_t*)RoIs1);
-        knn["match::in_n_RoIs0"].bind(&n_RoIs0);
-        knn["match::in_n_RoIs1"].bind(&n_RoIs1);
-        knn["match::out_RoIs0"].bind((uint8_t*)RoIs0);
-        knn["match::out_RoIs1"].bind((uint8_t*)RoIs1);
-        knn["match::out_n_RoIs1"].bind(&n_RoIs1);
-        knn["match::out_n_RoIs0"].bind(&n_RoIs0);
+        //knn["match::in_RoIs0"].bind((uint8_t*)RoIs0);
+        //knn["match::in_RoIs1"].bind((uint8_t*)RoIs1);
+        //knn["match::in_n_RoIs0"].bind(&n_RoIs0);
+        //knn["match::in_n_RoIs1"].bind(&n_RoIs1);
+        knn["match::in_RoIs0"] = f_filter_wrapper0["filter::out_RoIs"];
+        knn["match::in_n_RoIs0"] = f_filter_wrapper0["filter::out_n_RoIs"];
+        knn["match::in_RoIs1"] = f_filter_wrapper1["filter::out_RoIs"];
+        knn["match::in_n_RoIs1"] = f_filter_wrapper1["filter::out_n_RoIs"];
+        //knn["match::out_RoIs0"].bind((uint8_t*)RoIs0);
+        //knn["match::out_RoIs1"].bind((uint8_t*)RoIs1);
+        //knn["match::out_n_RoIs1"].bind(&n_RoIs1);
+        //knn["match::out_n_RoIs0"].bind(&n_RoIs0);
         knn("match").exec();
         TIME_POINT(knn_e);
         TIME_ACC(knn_a, knn_b, knn_e);
@@ -582,9 +608,12 @@ int main(int argc, char** argv) {
         TIME_POINT(trk_b);
         //tracking_perform(tracking_data, RoIs1, n_RoIs1, cur_fra, p_trk_ext_d, p_trk_obj_min,
         //                 p_trk_roi_path != NULL || visu, p_trk_ext_o, p_knn_s);
-        tracking_wrapper["perform::in_RoIs"].bind((uint8_t*)RoIs1);
-        tracking_wrapper["perform::in_n_RoIs"].bind(&n_RoIs1);
-        tracking_wrapper["perform::in_cur_fra"].bind(&cur_fra);
+        //tracking_wrapper["perform::in_RoIs"].bind((uint8_t*)RoIs1);
+        //tracking_wrapper["perform::in_n_RoIs"].bind(&n_RoIs1);
+        //tracking_wrapper["perform::in_cur_fra"].bind(&cur_fra);
+        tracking_wrapper["perform::in_RoIs"] = knn["match::out_RoIs1"];
+        tracking_wrapper["perform::in_n_RoIs"] = knn["match::out_n_RoIs1"];
+        tracking_wrapper["perform::in_cur_fra"] = video["generate::out_frame"];
         tracking_wrapper("perform").exec();
         TIME_POINT(trk_e);
         TIME_ACC(trk_a, trk_b, trk_e);
@@ -596,19 +625,27 @@ int main(int argc, char** argv) {
         TIME_POINT(log_b);
         // save frames (CCs)
         if (p_ccl_fra_path) {
-            (*log_fra)["write::in_labels"].bind(L21[0]);
-            (*log_fra)["write::in_RoIs"].bind((uint8_t*)RoIs1);
-            (*log_fra)["write::in_n_RoIs"].bind(&n_RoIs1);
+            //(*log_fra)["write::in_labels"].bind(L21[0]);
+            //(*log_fra)["write::in_RoIs"].bind((uint8_t*)RoIs1);
+            //(*log_fra)["write::in_n_RoIs"].bind(&n_RoIs1);
+            (*log_fra)["write::in_labels"] = f_filter_wrapper1["filter::out_labels"];
+            (*log_fra)["write::in_RoIs"] = knn["match::out_RoIs1"];
+            (*log_fra)["write::in_n_RoIs"] = knn["match::out_n_RoIs1"];
             (*log_fra)("write").exec();
         }
 
         // save stats
         if (p_log_path) {
-            log_RoIs["write::in_RoIs0"].bind((uint8_t*)RoIs0);
-            log_RoIs["write::in_n_RoIs0"].bind(&n_RoIs0);
-            log_RoIs["write::in_RoIs1"].bind((uint8_t*)RoIs1);
-            log_RoIs["write::in_n_RoIs1"].bind(&n_RoIs1);
-            log_RoIs["write::in_frame"].bind(&cur_fra);
+            //log_RoIs["write::in_RoIs0"].bind((uint8_t*)RoIs0);
+            //log_RoIs["write::in_n_RoIs0"].bind(&n_RoIs0);
+            //log_RoIs["write::in_RoIs1"].bind((uint8_t*)RoIs1);
+            //log_RoIs["write::in_n_RoIs1"].bind(&n_RoIs1);
+            //log_RoIs["write::in_frame"].bind(&cur_fra);
+            log_RoIs["write::in_RoIs0"] = knn["match::out_RoIs0"];
+            log_RoIs["write::in_n_RoIs0"] = knn["match::out_n_RoIs0"];
+            log_RoIs["write::in_RoIs1"] = knn["match::out_RoIs1"];
+            log_RoIs["write::in_n_RoIs1"] = knn["match::out_n_RoIs1"];
+            log_RoIs["write::in_frame"] = video["generate::out_frame"];
             log_RoIs("write").exec();
 
             if (cur_fra > (uint32_t)p_vid_in_start) {
@@ -618,14 +655,21 @@ int main(int argc, char** argv) {
 #ifdef MOTION_ENABLE_DEBUG
                 log_kNN["write::in_conflicts"].bind(knn_data->conflicts);
 #endif
-                log_kNN["write::in_RoIs0"].bind((uint8_t*)RoIs0);
-                log_kNN["write::in_n_RoIs0"].bind(&n_RoIs0);
-                log_kNN["write::in_RoIs1"].bind((uint8_t*)RoIs1);
-                log_kNN["write::in_n_RoIs1"].bind(&n_RoIs1);
-                log_kNN["write::in_frame"].bind(&cur_fra);
+                //log_kNN["write::in_RoIs0"].bind((uint8_t*)RoIs0);
+                //log_kNN["write::in_n_RoIs0"].bind(&n_RoIs0);
+                //log_kNN["write::in_RoIs1"].bind((uint8_t*)RoIs1);
+                //log_kNN["write::in_n_RoIs1"].bind(&n_RoIs1);
+                //log_kNN["write::in_frame"].bind(&cur_fra);
+
+                log_kNN["write::in_RoIs0"] = knn["match::out_RoIs0"];
+                log_kNN["write::in_n_RoIs0"] = knn["match::out_n_RoIs0"];
+                log_kNN["write::in_RoIs1"] = knn["match::out_RoIs1"];
+                log_kNN["write::in_n_RoIs1"] = knn["match::out_n_RoIs1"];
+                log_kNN["write::in_frame"] = video["generate::out_frame"];
                 log_kNN("write").exec();
 
-                log_trk["write::in_frame"].bind(&cur_fra);
+                //log_trk["write::in_frame"].bind(&cur_fra);
+                log_trk["write::in_frame"] = video["generate::out_frame"];
                 log_trk("write").exec();
             }
         }
@@ -635,10 +679,15 @@ int main(int argc, char** argv) {
         // display the result to the screen or write it into a video file
         TIME_POINT(vis_b);
         if (visu) {
-            (*visu)["display::in_frame"].bind(&cur_fra);
+            //(*visu)["display::in_frame"].bind(&cur_fra);
+            //(*visu)["display::in_img"].bind(IG1[0]);
+            //(*visu)["display::in_RoIs"].bind((uint8_t*)RoIs1);
+            //(*visu)["display::in_n_RoIs"].bind(&n_RoIs1);
+            (*visu)["display::in_frame"] = video["generate::out_frame"];
             (*visu)["display::in_img"].bind(IG1[0]);
-            (*visu)["display::in_RoIs"].bind((uint8_t*)RoIs1);
-            (*visu)["display::in_n_RoIs"].bind(&n_RoIs1);
+            (*visu)["display::in_RoIs"] = knn["match::out_RoIs1"];
+            (*visu)["display::in_n_RoIs"] = knn["match::out_n_RoIs1"];
+
             (*visu)("display").exec();
         }
         TIME_POINT(vis_e);
@@ -660,6 +709,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, " -- Tracks = %3lu\r", (unsigned long)n_moving_objs);
         fflush(stderr);
     }
+
     TIME_POINT(stop_compute);
     fprintf(stderr, "\n");
 
@@ -715,18 +765,18 @@ int main(int argc, char** argv) {
     //morpho_free_data(morpho_data1);
     free_ui8matrix(IG0, i0, i1, j0, j1);
     free_ui8matrix(IG1, i0, i1, j0, j1);
-    free_ui8matrix(IB0, i0, i1, j0, j1);
-    free_ui8matrix(IB1, i0, i1, j0, j1);
-    free_ui32matrix(L10, i0, i1, j0, j1);
-    free_ui32matrix(L11, i0, i1, j0, j1);
-    if (p_ccl_fra_path) {
-        free_ui32matrix(L20, i0, i1, j0, j1);
-        free_ui32matrix(L21, i0, i1, j0, j1);
-    }
-    features_free_RoIs(RoIs_tmp0);
-    features_free_RoIs(RoIs_tmp1);
-    features_free_RoIs(RoIs0);
-    features_free_RoIs(RoIs1);
+    //free_ui8matrix(IB0, i0, i1, j0, j1);
+    //free_ui8matrix(IB1, i0, i1, j0, j1);
+    //free_ui32matrix(L10, i0, i1, j0, j1);
+    //free_ui32matrix(L11, i0, i1, j0, j1);
+    //if (p_ccl_fra_path) {
+    //    free_ui32matrix(L20, i0, i1, j0, j1);
+    //    free_ui32matrix(L21, i0, i1, j0, j1);
+    //}
+    //features_free_RoIs(RoIs_tmp0);
+    //features_free_RoIs(RoIs_tmp1);
+    //features_free_RoIs(RoIs0);
+    //features_free_RoIs(RoIs1);
     //CCL_LSL_free_data(ccl_data0);
     //CCL_LSL_free_data(ccl_data1);
     //kNN_free_data(knn_data);
