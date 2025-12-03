@@ -15,9 +15,9 @@ Features_filter::Features_filter(const int i0, const int i1, const int j0, const
         // we can use a fwd socket here
     	auto si_labels = this->template create_2d_socket_in<uint32_t>(t, "in_labels", (i1 - i0) + 1, (j1 - j0) + 1); // fwd
     	auto si_RoIs   = this->template create_socket_in<uint8_t>(t, "in_RoIs", max_RoIs_size * sizeof(RoI_t));
-	auto si_n_RoIs = this->template create_socket_out<uint32_t>(t, "in_n_RoIs", 1); // fwd	
+	auto si_n_RoIs = this->template create_socket_in<uint32_t>(t, "in_n_RoIs", 1); // fwd	
     	auto so_labels = this->template create_2d_socket_out<uint32_t>(t, "out_labels", (i1 - i0) + 1, (j1 - j0) + 1); //fwd
-    	auto so_RoIs   = this->template create_socket_out<uint8_t>(t, "out_RoIs", max_RoIs_size * sizeof(RoI_t));
+    	auto so_RoIs   = this->template create_socket_out<uint8_t>(t, "out_RoIs", p_cca_roi_max2 * sizeof(RoI_t));
     	auto so_n_RoIs = this->template create_socket_out<uint32_t>(t, "out_n_RoIs", 1); // fwd	
 	
 	this->create_codelet(t,
