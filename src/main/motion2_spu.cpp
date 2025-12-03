@@ -318,8 +318,8 @@ int main(int argc, char** argv) {
     Tracking tracking_wrapper(p_trk_ext_d, p_trk_obj_min, p_trk_roi_path != NULL || p_vid_out_play || p_vid_out_path,
                               p_trk_ext_o,  p_knn_s, MAX(p_trk_obj_min, p_trk_ext_o) + 1, p_cca_roi_max2);
     const tracking_data_t *tracking_data = tracking_wrapper.get_tracking_data(); // flemme de changer dans le sucessif
-    uint8_t **IG0 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t - 1
-    uint8_t **IG1 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t
+    //uint8_t **IG0 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t - 1
+    //uint8_t **IG1 = ui8matrix(i0, i1, j0, j1); // grayscale input image at t
     //uint8_t **IB0 = ui8matrix(i0, i1, j0, j1); // binary image (after Sigma-Delta) at t - 1
     //uint8_t **IB1 = ui8matrix(i0, i1, j0, j1); // binary image (after Sigma-Delta) at t
     //uint32_t **L10 = ui32matrix(i0, i1, j0, j1); // labels (CCL) at t - 1
@@ -348,18 +348,24 @@ int main(int argc, char** argv) {
     // -- DATA INITIALISATION -- //
     // ------------------------- //
 
-    uint32_t cur_fra;
-    video["generate::out_img_gray8"].bind(&IG1[0][0]);
+    spu::module::Delayer<uint8_t> delay((i1 - i0 + 1) * (j1 - j0 + 1), 0);
+
+    uint32_t cur_fra; // i'm keeping it like this to minimize changes in the code below
+    //video["generate::out_img_gray8"].bind(&IG1[0][0]);
+    //delay["memorize::in"] = video["generate::out_img_gray8"];
     video["generate::out_frame"].bind(&cur_fra);
     video("generate").exec();
 
     //sigma_delta_init_data(sd_data0, (const uint8_t**)IG1, i0, i1, j0, j1);
     //sigma_delta_init_data(sd_data1, (const uint8_t**)IG1, i0, i1, j0, j1);
+    uint8_t **IG1 = video["generate::out_img_gray8"].get_2d_dataptr<uint8_t>();
+    //delay["memorize::in"] = video["generate::out_img_gray8"];
+    //delay("memorize").exec();
     Sigma_delta sd_wrapper0((const uint8_t**)IG1, i0, i1, j0, j1, 1, 254, p_sd_n);
     Sigma_delta sd_wrapper1((const uint8_t**)IG1, i0, i1, j0, j1, 1, 254, p_sd_n);
 
-    zero_ui8matrix(IG0, i0, i1, j0, j1);
-    zero_ui8matrix(IG1, i0, i1, j0, j1);
+    //zero_ui8matrix(IG0, i0, i1, j0, j1);
+    //zero_ui8matrix(IG1, i0, i1, j0, j1);
     //zero_ui8matrix(IB0, i0, i1, j0, j1);
     //zero_ui8matrix(IB1, i0, i1, j0, j1);
     //zero_ui32matrix(L10, i0, i1, j0, j1);
@@ -386,14 +392,16 @@ int main(int argc, char** argv) {
         //(*visu)["display::in_RoIs"].bind((uint8_t*)RoIs1);
         //(*visu)["display::in_n_RoIs"].bind(&n_RoIs1);
         (*visu)["display::in_frame"] = video["generate::out_frame"];
-        (*visu)["display::in_img"].bind(IG1[0]);
-        (*visu)["display::in_RoIs"] = knn["match::out_RoIs"];
-        (*visu)["display::in_n_RoIs"] = knn["match::out_n_RoIs"];
+        (*visu)["display::in_img"] = video["generate::out_img_gray8"];
+        (*visu)["display::in_RoIs"] = knn["match::out_RoIs1"];
+        (*visu)["display::in_n_RoIs"] = knn["match::out_n_RoIs1"];
         (*visu)("display").exec();
     }
 
     TIME_POINT(stop_alloc_init);
     printf("# Allocations and initialisations took %6.3f sec\n", TIME_ELAPSED2_SEC(start_alloc_init, stop_alloc_init));
+
+    delay.set_data(video["generate::out_img_gray8"].get_dataptr<uint8_t>());
 
     // --------------------- //
     // -- PROCESSING LOOP -- //
@@ -409,6 +417,7 @@ int main(int argc, char** argv) {
         // step 0: video decoding
         TIME_POINT(dec_b);
         try {
+            delay["memorize::in"] = video["generate::out_img_gray8"];
             video("generate").exec();
         } catch (const spu::tools::processing_aborted&) {}
         TIME_POINT(dec_e);
@@ -427,14 +436,15 @@ int main(int argc, char** argv) {
         // ------------------------- //
         // -- Processing at t - 1 -- //
         // ------------------------- //
-
         //uint32_t n_RoIs0 = 0;
-        if (n_processed_frames > 0) {
+        
             // step 1: motion detection (per pixel) with Sigma-Delta algorithm
             TIME_POINT(sd_b);
             //sigma_delta_compute(sd_data0, (const uint8_t**)IG0, IB0, i0, i1, j0, j1, p_sd_n);
-            sd_wrapper0["compute::in_img"].bind(IG0[0]);
+            //sd_wrapper0["compute::in_img"].bind(IG0[0]);
             //sd_wrapper0["compute::out_img"].bind(IB0[0]);
+            sd_wrapper0["compute::in_img"] = delay["produce::out"];
+            delay("produce").exec();
             sd_wrapper0("compute").exec();
             TIME_POINT(sd_e);
             TIME_ACC(sd_a, sd_b, sd_e);
@@ -502,34 +512,35 @@ int main(int argc, char** argv) {
 
             TIME_POINT(flt_e);
             TIME_ACC(flt_a, flt_b, flt_e);
-        }
 
         // --------------------- //
         // -- Processing at t -- //
         // --------------------- //
-
+        delay("memorize").exec();
         // step 1: motion detection (per pixel) with Sigma-Delta algorithm
-        TIME_POINT(sd_b);
+        TIME_POINT(sd_b1);
         //sigma_delta_compute(sd_data1, (const uint8_t**)IG1, IB1, i0, i1, j0, j1, p_sd_n);
-        sd_wrapper1["compute::in_img"].bind(IG1[0]);
+        //sd_wrapper1["compute::in_img"].bind(IG1[0]);
         //sd_wrapper1["compute::out_img"].bind(IB1[0]);
+        sd_wrapper1["compute::in_img"] = delay["produce::out"];
+        delay("produce").exec();
         sd_wrapper1("compute").exec();
-        TIME_POINT(sd_e);
-        TIME_ACC(sd_a, sd_b, sd_e);
+        TIME_POINT(sd_e1);
+        TIME_ACC(sd_a, sd_b1, sd_e1);
 
         // step 2: mathematical morphology
-        TIME_POINT(mrp_b);
+        TIME_POINT(mrp_b1);
         //morpho_compute_opening3(morpho_data1, (const uint8_t**)IB1, IB1, i0, i1, j0, j1);
         //morpho_compute_closing3(morpho_data1, (const uint8_t**)IB1, IB1, i0, i1, j0, j1);
         //morpho_wrapper1["compute::in_img"].bind(IB1[0]);
         morpho_wrapper1["compute::in_img"] = sd_wrapper1["compute::out_img"];
         //morpho_wrapper1["compute::out_img"].bind(IB1[0]);
         morpho_wrapper1("compute").exec();
-        TIME_POINT(mrp_e);
-        TIME_ACC(mrp_a, mrp_b, mrp_e);
+        TIME_POINT(mrp_e1);
+        TIME_ACC(mrp_a, mrp_b1, mrp_e1);
 
         // step 3: connected components labeling (CCL)
-        TIME_POINT(ccl_b);
+        TIME_POINT(ccl_b1);
         //const uint32_t n_RoIs_tmp1 = CCL_LSL_apply(ccl_data1, (const uint8_t**)IB1, L11, 0);
         //assert(n_RoIs_tmp1 <= (uint32_t)p_cca_roi_max1);
 	
@@ -539,11 +550,11 @@ int main(int argc, char** argv) {
         //ccl_wrapper1["apply::out_labels"].bind(L11[0]);
         //ccl_wrapper1["apply::out_n_RoIs_tmp0"].bind(&n_RoIs_tmp1);
         ccl_wrapper1("apply").exec();
-        TIME_POINT(ccl_e);
-        TIME_ACC(ccl_a, ccl_b, ccl_e);
+        TIME_POINT(ccl_e1);
+        TIME_ACC(ccl_a, ccl_b1, ccl_e1);
 
         // step 4: connected components analysis (CCA): from image of labels to "regions of interest" (RoIs)
-        TIME_POINT(cca_b);
+        TIME_POINT(cca_b1);
         //features_extract((const uint32_t**)L11, i0, i1, j0, j1, RoIs_tmp1, n_RoIs_tmp1);
         //f_cca_wrapper["extract::in_labels"].bind(L11[0]);
         //f_cca_wrapper["extract::in_n_RoIs"].bind(&n_RoIs_tmp1);
@@ -553,11 +564,11 @@ int main(int argc, char** argv) {
         //f_cca_wrapper["extract::out_labels"].bind(L21[0]); // for later use if needed 
         //f_cca_wrapper1["extract::out_n_RoIs"].bind(&n_RoIs_tmp1);
         f_cca_wrapper1("extract").exec();
-        TIME_POINT(cca_e);
-        TIME_ACC(cca_a, cca_b, cca_e);
+        TIME_POINT(cca_e1);
+        TIME_ACC(cca_a, cca_b1, cca_e1);
 
         // step 5: surface filtering (rm too small and too big RoIs)
-        TIME_POINT(flt_b);
+        TIME_POINT(flt_b1);
         //const uint32_t n_RoIs1 = features_filter_surface((const uint32_t**)L11, L21, i0, i1, j0, j1, RoIs_tmp1,                                                         n_RoIs_tmp1, p_flt_s_min, p_flt_s_max);
         //assert(n_RoIs1 <= (uint32_t)p_cca_roi_max2);
         // features_labels_zero_init(RoIs_tmp->basic, L1);
@@ -578,8 +589,8 @@ int main(int argc, char** argv) {
         //f_filter_wrapper1["filter::out_n_RoIs"].bind(&n_RoIs1);
         f_filter_wrapper1("filter").exec();
 
-        TIME_POINT(flt_e);
-        TIME_ACC(flt_a, flt_b, flt_e);
+        TIME_POINT(flt_e1);
+        TIME_ACC(flt_a, flt_b1, flt_e1);
 
         // ----------------------------- //
         // -- Associations (t - 1, t) -- //
@@ -684,7 +695,7 @@ int main(int argc, char** argv) {
             //(*visu)["display::in_RoIs"].bind((uint8_t*)RoIs1);
             //(*visu)["display::in_n_RoIs"].bind(&n_RoIs1);
             (*visu)["display::in_frame"] = video["generate::out_frame"];
-            (*visu)["display::in_img"].bind(IG1[0]);
+            (*visu)["display::in_img"] = video["generate::out_img_gray8"];
             (*visu)["display::in_RoIs"] = knn["match::out_RoIs1"];
             (*visu)["display::in_n_RoIs"] = knn["match::out_n_RoIs1"];
 
@@ -694,11 +705,11 @@ int main(int argc, char** argv) {
         TIME_ACC(vis_a, vis_b, vis_e);
 
         // swap IG0 <-> IG1 for the next frame
-        uint8_t** tmp = IG0;
-        IG0 = IG1;
-        IG1 = tmp;
+        //uint8_t** tmp = IG0;
+        //IG0 = IG1;
+        //IG1 = tmp;
         // here we need to rebind the IG1 because we swapped the IG0 & IG1 buffers!
-        video["generate::out_img_gray8"].bind(&IG1[0][0]);
+        //video["generate::out_img_gray8"].bind(&IG1[0][0]);
 
         n_processed_frames++;
         n_moving_objs = tracking_count_objects(tracking_data->tracks);
@@ -763,8 +774,8 @@ int main(int argc, char** argv) {
     //sigma_delta_free_data(sd_data1);
     //morpho_free_data(morpho_data0);
     //morpho_free_data(morpho_data1);
-    free_ui8matrix(IG0, i0, i1, j0, j1);
-    free_ui8matrix(IG1, i0, i1, j0, j1);
+    //free_ui8matrix(IG0, i0, i1, j0, j1);
+    //free_ui8matrix(IG1, i0, i1, j0, j1);
     //free_ui8matrix(IB0, i0, i1, j0, j1);
     //free_ui8matrix(IB1, i0, i1, j0, j1);
     //free_ui32matrix(L10, i0, i1, j0, j1);
