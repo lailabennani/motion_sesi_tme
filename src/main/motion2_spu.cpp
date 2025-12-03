@@ -584,6 +584,7 @@ int main(int argc, char** argv) {
         //                 p_trk_roi_path != NULL || visu, p_trk_ext_o, p_knn_s);
         tracking_wrapper["perform::in_RoIs"].bind((uint8_t*)RoIs1);
         tracking_wrapper["perform::in_n_RoIs"].bind(&n_RoIs1);
+        tracking_wrapper["perform::in_cur_fra"].bind(&cur_fra);
         tracking_wrapper("perform").exec();
         TIME_POINT(trk_e);
         TIME_ACC(trk_a, trk_b, trk_e);

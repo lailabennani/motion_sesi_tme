@@ -14,19 +14,21 @@ Tracking::Tracking(const size_t r_extrapol, const size_t fra_obj_min, const uint
 
 	auto si_RoIs = this->template create_socket_in<uint8_t>(t, "in_RoIs", max_RoIs_size * sizeof(RoI_t));
 	auto si_n_RoIs = this->template create_socket_in<uint32_t>(t, "in_n_RoIs", 1);
+	auto si_cur_fra = this->template create_socket_in<uint32_t>(t, "in_cur_fra", 1);
 
 	this->create_codelet(t,
-		[si_RoIs, si_n_RoIs]
+		[si_RoIs, si_n_RoIs, si_cur_fra]
 		(spu::module::Module &m, spu::runtime::Task &p, const size_t frame_id) -> int {
 			auto &track = static_cast<Tracking&>(m);
 
 			const RoI_t* in_RoIs = p[si_RoIs].get_dataptr<const RoI_t>();
 			const uint32_t in_n_RoIs = p[si_n_RoIs].get_dataptr<const uint32_t>()[0];
+			const uint32_t cur_fra = p[si_cur_fra].get_dataptr<const uint32_t>()[0];
 			
 			tracking_perform(track.tracking_data, 
 				in_RoIs, 
 				in_n_RoIs, 
-				frame_id, 
+				cur_fra,
 				track.r_extrapol, 
 				track.fra_obj_min, 
 				track.save_RoIs_id, 
