@@ -1,3 +1,5 @@
+// lahkim - leon
+
 #include "motion/wrapper/Sigma_delta.hpp"
 
 Sigma_delta::Sigma_delta(const uint8_t** initial_img, const int i0, const int i1, const int j0, const int j1, const uint8_t vmin, const uint8_t vmax, const int n) : spu::module::Stateful(), i0(i0), i1(i1), j0(j0), j1(j1), vmin(vmin), vmax(vmax), n(n){

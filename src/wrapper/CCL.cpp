@@ -1,5 +1,7 @@
 #include "motion/wrapper/CCL.hpp"
 
+// lahkim - leon
+
 CCL::CCL(const int i0, const int i1, const int j0, const int j1, const int p_cca_roi_max1)
 : spu::module::Stateful(), i0(i0), i1(i1), j0(j0), j1(j1), p_cca_roi_max1(p_cca_roi_max1)
 {

@@ -1,3 +1,5 @@
+// lahkim - leon
+
 #include "motion/wrapper/KNN.hpp"
 
 KNN::KNN(const size_t max_sz, const int k, const uint32_t max_dist, const float min_ratio_S) {
