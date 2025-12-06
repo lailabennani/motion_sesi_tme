@@ -1,5 +1,11 @@
 // lahkim - leon
 
+/*
+ * Observations on the stats:
+ * morpho and sigma delta seem to be the ones getting most
+ * of the time.
+**/
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -421,6 +427,7 @@ int main(int argc, char** argv) {
     // -- LOGS -- //
     // ---------- //
 /*
+    // we could put some switchers here to properly get the logs.
     // save frames (CCs)
     if (p_ccl_fra_path) {
         (*log_fra)["write::in_labels"] = f_filter_wrapper1["filter::out_labels"];
@@ -476,9 +483,14 @@ int main(int argc, char** argv) {
     //n_processed_frames++; // incrementer ?
     //n_moving_objs = tracking_count_objects(tracking_data->tracks);
 
+    for (auto &mdl : seq.get_modules<spu::module::Module>(false)) {
+        for (auto &tsk : mdl->tasks) {
+            tsk->set_stats(true);
+        }
+    }
+
     seq.exec([&n_processed_frames, &n_moving_objs, 
         &tracking_data, &video, &cur_fra, &t_start_compute, &t_start_compute_us]() {
-        n_processed_frames++;
         n_moving_objs = tracking_count_objects(tracking_data->tracks);
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
         TIME_POINT(stop_compute);
@@ -486,9 +498,12 @@ int main(int argc, char** argv) {
         fprintf(stderr, " -- FPS = %4d", (int)(n_processed_frames / (TIME_ELAPSED2_SEC(start_compute, stop_compute))));
         fprintf(stderr, " -- Tracks = %3lu\r", (unsigned long)n_moving_objs);
         fflush(stderr);
+        n_processed_frames++;
 
         return video.is_done();
     });
+
+    n_processed_frames--;
 
     TIME_POINT(stop_compute);
     fprintf(stderr, "\n");
@@ -517,6 +532,9 @@ int main(int argc, char** argv) {
         double total = TIME_ELAPSED_MS(total) / n_processed_frames;
         printf("# => Total          = %8.3f ms [~%5.2f FPS]\n", total, 1000. / total);
     }
+
+    spu::tools::Stats::show(seq.get_modules<spu::module::Module>(false));
+    
 
     // some frames have been buffered for the visualization, display or write these frames here
     if (visu)
