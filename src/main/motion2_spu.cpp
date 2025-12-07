@@ -11,10 +11,11 @@
  * base execution we can get around 15 FPS
  * with the pipeline, we can get even 23 FPS ! :D
  * using the simpler pipeline we can get even 56 FPS !!! OwO \o/
+ *  but 38 in moyen (maybe it was just some luck tho)
  * 
  * More stages -> more memory
  * 
- * OMP: 43 FPS in moyen (with 4 threads dynamic 8)
+ * OMP: 45 FPS in moyen (with 4 threads dynamic 8)
  * 
  * 
 **/
