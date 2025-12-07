@@ -426,8 +426,7 @@ int main(int argc, char** argv) {
     // ---------- //
     // -- LOGS -- //
     // ---------- //
-/*
-    // we could put some switchers here to properly get the logs.
+
     // save frames (CCs)
     if (p_ccl_fra_path) {
         (*log_fra)["write::in_labels"] = f_filter_wrapper1["filter::out_labels"];
@@ -444,9 +443,12 @@ int main(int argc, char** argv) {
         log_RoIs["write::in_n_RoIs1"] = knn["match::out_n_RoIs1"];
         log_RoIs["write::in_frame"] = video["generate::out_frame"];
         //log_RoIs("write").exec();
-/*
-        if (cur_fra > (uint32_t)p_vid_in_start) {
-            kNN_data_t* knn_data = knn.get_kNN_data(); // just for testing
+
+        //if (cur_fra > (uint32_t)p_vid_in_start) { 
+        /* we always start at 0 anyway
+         * we could use a switcher to avoid this check
+         */
+            kNN_data_t* knn_data = knn.get_kNN_data();
             log_kNN["write::in_nearest"].bind(knn_data->nearest[0]);
             log_kNN["write::in_distances"].bind(knn_data->distances[0]);
 #ifdef MOTION_ENABLE_DEBUG
@@ -461,8 +463,8 @@ int main(int argc, char** argv) {
 
             log_trk["write::in_frame"] = video["generate::out_frame"];
             //log_trk("write").exec();
-        }
-}
+        //}
+    }
 
     // display the result to the screen or write it into a video file
     if (visu) {
@@ -473,10 +475,25 @@ int main(int argc, char** argv) {
 
         //(*visu)("display").exec();
     }
-*/
+
 
     std::vector<spu::runtime::Task *> firsts = { &delay("produce"), &video("generate") };
     std::vector<spu::runtime::Task *> lasts = { &tracking_wrapper("perform") };
+    
+    if (p_ccl_fra_path) {
+        lasts.push_back(&(*log_fra)("write"));
+    }
+
+    if (p_log_path) {
+        lasts.push_back(&log_RoIs("write"));
+        lasts.push_back(&log_kNN("write"));
+        lasts.push_back(&log_trk("write"));
+    }
+
+    if (visu) {
+        lasts.push_back(&(*visu)("display"));
+    }
+    
     spu::runtime::Sequence seq(firsts, lasts);
     std::ofstream file("graph.dot");
     seq.export_dot(file);
