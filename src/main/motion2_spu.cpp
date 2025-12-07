@@ -14,7 +14,7 @@
  * 
  * More stages -> more memory
  * 
- * OMP: 43 FPS with 4 threads dynamic 8
+ * OMP: 43 FPS in moyen (with 4 threads dynamic 8)
  * 
  * 
 **/
