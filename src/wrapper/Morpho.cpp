@@ -8,7 +8,7 @@ Morpho::Morpho(const int i0, const int i1, const int j0, const int j1)
 	this->set_name(name);
 	this->set_short_name(name);
 	this->morpho_data = morpho_alloc_data(i0, i1, j0, j1);
-	morpho_init_data(this->morpho_data); // check this
+	morpho_init_data(this->morpho_data);
 	this->tmp_img = ui8matrix(i0, i1, j0, j1);
 
 	auto &t = this->create_task("compute");
@@ -18,7 +18,7 @@ Morpho::Morpho(const int i0, const int i1, const int j0, const int j1)
 	this->create_codelet(t,
 		[si_img, so_img]
 			(spu::module::Module &m, spu::runtime::Task &p, const size_t frame_id) -> int {
-		auto &morph = static_cast<Morpho&>(m);
+		auto &morph = static_cast<Morpho &>(m);
 
 		const uint8_t **in_img = p[si_img].get_2d_dataptr<const uint8_t>();
 		zero_ui8matrix(morph.tmp_img, morph.i0, morph.i1, morph.j0, morph.j1);
@@ -35,5 +35,24 @@ Morpho::~Morpho() {
 	morpho_free_data(this->morpho_data);
 	free_ui8matrix(this->tmp_img, this->i0, this->i1, this->j0, this->j1);
 }
+
+
+Morpho *Morpho::clone() const {
+	auto m = new Morpho(*this);
+	m->deep_copy(*this);
+
+	return m;
+}
+
+
+void Morpho::deep_copy(const Morpho &m) {
+	Stateful::deep_copy(m);
+	this->morpho_data = morpho_alloc_data(m.morpho_data->i0, m.morpho_data->i1, 
+		m.morpho_data->j0, m.morpho_data->j1);
+	morpho_init_data(this->morpho_data);
+	this->tmp_img = ui8matrix(m.i0, m.i1, m.j0, m.j1);
+}
+
+
 
 

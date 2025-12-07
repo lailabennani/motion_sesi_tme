@@ -48,3 +48,17 @@ Features_filter::Features_filter(const int i0, const int i1, const int j0, const
 Features_filter::~Features_filter() {
 	features_free_RoIs(this->RoIs_tmp);
 }
+
+
+Features_filter *Features_filter::clone() const {
+    auto m = new Features_filter(*this);
+    m->deep_copy(*this);
+
+    return m;
+}
+
+void Features_filter::deep_copy(const Features_filter &m) {
+    Stateful::deep_copy(m);
+    this->RoIs_tmp = features_alloc_RoIs(m.max_RoIs_size);
+    features_init_RoIs(this->RoIs_tmp, m.max_RoIs_size);
+}

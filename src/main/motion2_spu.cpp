@@ -521,7 +521,7 @@ int main(int argc, char** argv) {
 
     spu::runtime::Pipeline pip (
         seq_first_tasks, pip_stages,
-        {   1,     1,     1   },
+        {   1,     2,     1   },
         {       1,     1,     },
         {    false, false,    },
         { false, false, false },
@@ -602,12 +602,9 @@ int main(int argc, char** argv) {
     printf("# -> Detected tracks  = %4lu\n", (unsigned long)n_moving_objs);
     printf("# -> Took %6.3f seconds (avg %d FPS)\n", TIME_ELAPSED2_SEC(start_compute, stop_compute),
            (int)(n_processed_frames / (TIME_ELAPSED2_SEC(start_compute, stop_compute))));
+
     if (p_stats) {
         printf("#\n");
-
-        TIME_SETA(total);
-        double total = TIME_ELAPSED_MS(total) / n_processed_frames;
-        printf("# => Total          = %8.3f ms [~%5.2f FPS]\n", total, 1000. / total);
         const bool ordered = true, display_throughput = false;
 
         auto stages = pip.get_stages();

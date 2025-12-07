@@ -14,9 +14,11 @@ protected:
 	const int p_flt_s_max;
 	const int p_cca_roi_max2;
 	
-	RoI_t * RoIs_tmp;
+	RoI_t *RoIs_tmp;
 
 public:
 	Features_filter(const int i0, const int i1, const int j0, const int j1, const size_t max_RoIs_size, const int p_flt_s_min, const int p_flt_s_max, const int p_cca_roi_max2);
 	~Features_filter();
+	virtual Features_filter* clone() const;
+	virtual void deep_copy(const Features_filter& m);
 };

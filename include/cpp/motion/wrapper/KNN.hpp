@@ -13,6 +13,8 @@ public:
     KNN(const size_t max_sz, const int k, const uint32_t max_dist, const float min_ratio_S);
     virtual ~KNN();
 
-    kNN_data_t* get_kNN_data() const;
+    kNN_data_t *get_kNN_data() const;
+    virtual KNN *clone() const;
+    virtual void deep_copy(const KNN& m);
 
 };

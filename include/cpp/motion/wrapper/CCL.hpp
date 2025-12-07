@@ -13,10 +13,11 @@ protected:
 	int j1;
 	const int p_cca_roi_max1;
 
-	CCL_data_t * CCL_data;
+	CCL_data_t *CCL_data;
 	
 public:
 	CCL(const int i0, const int i1, const int j0, const int j1, const int p_cca_roi_max1);
-
 	virtual ~CCL();
+	virtual CCL *clone() const;
+	virtual void deep_copy(const CCL &m);
 };

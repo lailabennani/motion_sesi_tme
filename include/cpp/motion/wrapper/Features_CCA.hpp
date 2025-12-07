@@ -11,5 +11,7 @@ protected:
         const size_t max_sz;
 public:
         Features_CCA(const int i0, const int i1, const int j0, const int j1, const size_t max_RoIs_size);
-        virtual ~Features_CCA() = default; // todo: verify
+        virtual ~Features_CCA() = default;
+        virtual Features_CCA *clone() const;
+        virtual void deep_copy(const Features_CCA& m);
 };

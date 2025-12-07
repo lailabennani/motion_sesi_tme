@@ -37,3 +37,15 @@ CCL::~CCL() {
 	CCL_LSL_free_data(this->CCL_data);
 }
 
+CCL *CCL::clone() const {
+    auto m = new CCL(*this);
+    m->deep_copy(*this);
+
+    return m;
+}
+
+void CCL::deep_copy(const CCL &m) {
+    Stateful::deep_copy(m);
+    this->CCL_data = CCL_LSL_alloc_data(m.i0, m.i1, m.j0, m.j1);
+    CCL_LSL_init_data(this->CCL_data);
+}

@@ -56,5 +56,17 @@ KNN::~KNN() {
     kNN_free_data(this->knn_data);
 }
 
+KNN *KNN::clone() const {
+    auto m = new KNN(*this);
+    m->deep_copy(*this);
+
+    return m;
+}
+
+void KNN::deep_copy(const KNN &m) {
+    Stateful::deep_copy(m);
+    this->knn_data = kNN_alloc_data(m.knn_data->_max_size);
+    kNN_init_data(this->knn_data);
+}
 
 kNN_data_t *KNN::get_kNN_data() const { return this->knn_data; }
