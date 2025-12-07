@@ -39,6 +39,7 @@ void sigma_delta_free_data(sigma_delta_data_t* sd_data) {
 
 void sigma_delta_compute(sigma_delta_data_t *sd_data, const uint8_t** img_in, uint8_t** img_out, const int i0,
                          const int i1, const int j0, const int j1, const uint8_t N) {
+    #pragma omp parallel for collapse(2)
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             uint8_t new_m = sd_data->M[i][j];
@@ -50,12 +51,14 @@ void sigma_delta_compute(sigma_delta_data_t *sd_data, const uint8_t** img_in, ui
         }
     }
 
+    #pragma omp parallel for collapse(2)
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             sd_data->O[i][j] = abs(sd_data->M[i][j] - img_in[i][j]);
         }
     }
 
+    #pragma omp parallel for collapse(2)
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             uint8_t new_v = sd_data->V[i][j];
@@ -67,6 +70,7 @@ void sigma_delta_compute(sigma_delta_data_t *sd_data, const uint8_t** img_in, ui
         }
     }
 
+    #pragma omp parallel for collapse(2)
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             img_out[i][j] = sd_data->O[i][j] < sd_data->V[i][j] ? 0 : 255;

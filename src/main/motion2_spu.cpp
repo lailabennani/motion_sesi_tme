@@ -371,7 +371,6 @@ int main(int argc, char** argv) {
 
     // step 1: motion detection (per pixel) with Sigma-Delta algorithm
     sd_wrapper["compute::in_img"] = video["generate::out_img_gray8"];
-    video("generate").exec();
     sd_wrapper("compute").exec();
 
     // step 2: mathematical morphology
@@ -407,13 +406,10 @@ int main(int argc, char** argv) {
     knn["match::in_RoIs1"] = f_filter_wrapper["filter::out_RoIs"];
     knn["match::in_n_RoIs1"] = f_filter_wrapper["filter::out_n_RoIs"];
     
-    //knn("match").exec();
-
     // step 7: temporal tracking
     tracking_wrapper["perform::in_RoIs"] = knn["match::out_RoIs1"];
     tracking_wrapper["perform::in_n_RoIs"] = knn["match::out_n_RoIs1"];
     tracking_wrapper["perform::in_cur_fra"] = video["generate::out_frame"];
-    //tracking_wrapper("perform").exec();
 
     // ---------- //
     // -- LOGS -- //
@@ -502,7 +498,7 @@ int main(int argc, char** argv) {
     }
 
     if (visu) {
-        std::get<1>(last_stage).push_back(&(*visu)("display"));
+        std::get<0>(last_stage).push_back(&(*visu)("display"));
     }
 
     std::vector<spu::runtime::Task *> seq_first_tasks = { &video("generate"), &delay_n_RoIs("produce"), &delay_RoIs("produce") };
@@ -568,6 +564,7 @@ int main(int argc, char** argv) {
     });
 
     TIME_POINT(stop_compute);
+    n_processed_frames--;
 
     fprintf(stderr, "\n");
 
