@@ -14,6 +14,8 @@
  * 
  * More stages -> more memory
  * 
+ * OMP: 43 FPS with 4 threads
+ * 
  * 
 **/
 
@@ -504,7 +506,7 @@ int main(int argc, char** argv) {
     std::vector<spu::runtime::Task *> seq_first_tasks = { &video("generate"), &delay_n_RoIs("produce"), &delay_RoIs("produce") };
 
     spu::runtime::Pipeline pip (seq_first_tasks, pip_stages,
-        {   1,     2,     1   },
+        {   1,     4,     1   },
         {       1,     1,     },
         {    false, false,    },
         { false, false, false },
