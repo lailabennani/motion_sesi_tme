@@ -541,22 +541,29 @@ int main(int argc, char** argv) {
         }
     }
 
+    bool stop = false;
+    bool stop2 = false;
+
     TIME_POINT(start_compute);
 
     pip.exec({
-        [&n_processed_frames, &video]() {
+        [&n_processed_frames, &video, &stop, &stop2]() {
             
             n_processed_frames++;
 
-            return video.is_done();
+            if (stop) {
+                stop2 = true;
+            }
+
+            return stop;
         },
 
-        [&video]() {
-            return video.is_done();
+        [&video, &stop2]() {
+            return stop2;
         },
         
-        [&n_processed_frames, &n_moving_objs, 
-        &tracking_data, &video, &cur_fra, &t_start_compute, &t_start_compute_us]() {
+        [&n_processed_frames, &n_moving_objs, &tracking_data, &video,
+        &cur_fra, &t_start_compute, &t_start_compute_us, &stop, &stop2]() {
             n_moving_objs = tracking_count_objects(tracking_data->tracks);
             fprintf(stderr, "(II) Frame n°%4d", cur_fra);
             TIME_POINT(stop_compute);
@@ -564,8 +571,12 @@ int main(int argc, char** argv) {
             fprintf(stderr, " -- FPS = %4d", (int)(n_processed_frames / (TIME_ELAPSED2_SEC(start_compute, stop_compute))));
             fprintf(stderr, " -- Tracks = %3lu\r", (unsigned long)n_moving_objs);
             fflush(stderr);
+
+            if (video.is_done()) {
+                stop = true;
+            }
     
-            return video.is_done();
+            return stop2;
         }
     });
 
