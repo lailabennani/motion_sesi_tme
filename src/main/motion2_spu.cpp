@@ -45,6 +45,9 @@
 #include "motion/wrapper/Tracking.hpp"
 #include "motion/wrapper/Features_filter.hpp"
 
+typedef std::vector<spu::runtime::Task *> vectotask_t;
+
+typedef std::tuple<vectotask_t, vectotask_t, vectotask_t> vectotask_triplet_t;
 
 int main(int argc, char** argv) {
 
@@ -432,7 +435,6 @@ int main(int argc, char** argv) {
         (*log_fra)["write::in_labels"] = f_filter_wrapper1["filter::out_labels"];
         (*log_fra)["write::in_RoIs"] = knn["match::out_RoIs1"];
         (*log_fra)["write::in_n_RoIs"] = knn["match::out_n_RoIs1"];
-        //(*log_fra)("write").exec();
     }
 
     // save stats
@@ -442,7 +444,6 @@ int main(int argc, char** argv) {
         log_RoIs["write::in_RoIs1"] = knn["match::out_RoIs1"];
         log_RoIs["write::in_n_RoIs1"] = knn["match::out_n_RoIs1"];
         log_RoIs["write::in_frame"] = video["generate::out_frame"];
-        //log_RoIs("write").exec();
 
         //if (cur_fra > (uint32_t)p_vid_in_start) { 
         /* we always start at 0 anyway
@@ -459,11 +460,8 @@ int main(int argc, char** argv) {
             log_kNN["write::in_RoIs1"] = knn["match::out_RoIs1"];
             log_kNN["write::in_n_RoIs1"] = knn["match::out_n_RoIs1"];
             log_kNN["write::in_frame"] = video["generate::out_frame"];
-            //log_kNN("write").exec();
-
             log_trk["write::in_frame"] = video["generate::out_frame"];
-            //log_trk("write").exec();
-        //}
+
     }
 
     // display the result to the screen or write it into a video file
@@ -472,41 +470,74 @@ int main(int argc, char** argv) {
         (*visu)["display::in_img"] = video["generate::out_img_gray8"];
         (*visu)["display::in_RoIs"] = knn["match::out_RoIs1"];
         (*visu)["display::in_n_RoIs"] = knn["match::out_n_RoIs1"];
-
-        //(*visu)("display").exec();
     }
 
+    /* -------------- */
+    /* -- PIPELINE -- */
+    /* -------------- */
 
-    std::vector<spu::runtime::Task *> firsts = { &delay("produce"), &video("generate") };
-    std::vector<spu::runtime::Task *> lasts = { &tracking_wrapper("perform") };
-    
+    std::vector<vectotask_triplet_t> pip_stages = {
+        // stage 1
+        std::make_tuple<vectotask_t, vectotask_t, vectotask_t>(
+            { &delay("produce"), &video("generate") },
+            { &sd_wrapper0("compute"), &sd_wrapper1("compute") },
+            { /* exception */}
+        ),
+        // stage 2
+        std::make_tuple<vectotask_t, vectotask_t, vectotask_t>(
+            { &morpho_wrapper0("compute"), &morpho_wrapper1("compute") },
+            { &knn("match") },
+            { /* exception */}
+        ),
+        // stage 3
+        std::make_tuple<vectotask_t, vectotask_t, vectotask_t>(
+            { &tracking_wrapper("perform") },
+            { /* last*/ },
+            { /* exception */}
+        )
+    };
+
+    vectotask_triplet_t &last_stage = pip_stages.back();
+
     if (p_ccl_fra_path) {
-        lasts.push_back(&(*log_fra)("write"));
+        std::get<0>(last_stage).push_back(&(*log_fra)("write"));
     }
 
     if (p_log_path) {
-        lasts.push_back(&log_RoIs("write"));
-        lasts.push_back(&log_kNN("write"));
-        lasts.push_back(&log_trk("write"));
+        std::get<0>(last_stage).push_back(&log_RoIs("write"));
+        std::get<0>(last_stage).push_back(&log_kNN("write"));
+        std::get<0>(last_stage).push_back(&log_trk("write"));
+        std::get<2>(pip_stages[0]).push_back(&log_trk("write"));
     }
 
     if (visu) {
-        lasts.push_back(&(*visu)("display"));
+        std::get<0>(last_stage).push_back(&(*visu)("display"));
     }
     
-    spu::runtime::Sequence seq(firsts, lasts);
-    std::ofstream file("graph.dot");
-    seq.export_dot(file);
+    std::vector<spu::runtime::Task *> seq_first_tasks = { &delay("produce"), &video("generate")};
+
+    spu::runtime::Pipeline pip (
+        seq_first_tasks, pip_stages,
+        {   1,     1,     1   },
+        {       1,     1,     },
+        {    false, false,    },
+        { false, false, false },
+        { "PU0 |  PU1 |  PU2" }
+    );
+
+    std::ofstream file("pip_graph.dot");
+    pip.export_dot(file);
     //n_processed_frames++; // incrementer ?
     //n_moving_objs = tracking_count_objects(tracking_data->tracks);
-
+/*
     for (auto &mdl : seq.get_modules<spu::module::Module>(false)) {
         for (auto &tsk : mdl->tasks) {
             tsk->set_stats(true);
         }
     }
+*/
 
-    seq.exec([&n_processed_frames, &n_moving_objs, 
+    pip.exec([&n_processed_frames, &n_moving_objs, 
         &tracking_data, &video, &cur_fra, &t_start_compute, &t_start_compute_us]() {
         n_moving_objs = tracking_count_objects(tracking_data->tracks);
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
@@ -550,7 +581,7 @@ int main(int argc, char** argv) {
         printf("# => Total          = %8.3f ms [~%5.2f FPS]\n", total, 1000. / total);
     }
 
-    spu::tools::Stats::show(seq.get_modules<spu::module::Module>(false));
+    //spu::tools::Stats::show(seq.get_modules<spu::module::Module>(false));
     
 
     // some frames have been buffered for the visualization, display or write these frames here
