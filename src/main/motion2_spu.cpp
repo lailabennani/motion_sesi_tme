@@ -10,6 +10,10 @@
  * executions in az4-mixed
  * base execution we can get around 15 FPS
  * with the pipeline, we can get even 23 FPS ! :D
+ * using the simpler pipeline we can get even 56 FPS !!! OwO \o/
+ * 
+ * More stages -> more memory
+ * 
  * 
 **/
 
@@ -565,7 +569,6 @@ int main(int argc, char** argv) {
 
     TIME_POINT(stop_compute);
 
-    n_processed_frames--;
     fprintf(stderr, "\n");
 
     if (p_trk_roi_path) {

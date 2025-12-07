@@ -585,7 +585,6 @@ int main(int argc, char** argv) {
 
     TIME_POINT(stop_compute);
 
-    n_processed_frames--;
     fprintf(stderr, "\n");
 
     if (p_trk_roi_path) {
