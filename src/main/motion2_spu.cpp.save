@@ -500,9 +500,11 @@ int main(int argc, char** argv) {
     //n_processed_frames++; // incrementer ?
     //n_moving_objs = tracking_count_objects(tracking_data->tracks);
 
-    for (auto &mdl : seq.get_modules<spu::module::Module>(false)) {
-        for (auto &tsk : mdl->tasks) {
-            tsk->set_stats(true);
+    if (p_stats) {
+        for (auto &mdl : seq.get_modules<spu::module::Module>(false)) {
+            for (auto &tsk : mdl->tasks) {
+                tsk->set_stats(true);
+            }
         }
     }
 
@@ -548,9 +550,9 @@ int main(int argc, char** argv) {
         TIME_SETA(total);
         double total = TIME_ELAPSED_MS(total) / n_processed_frames;
         printf("# => Total          = %8.3f ms [~%5.2f FPS]\n", total, 1000. / total);
+        spu::tools::Stats::show(seq.get_modules<spu::module::Module>(false));
     }
 
-    spu::tools::Stats::show(seq.get_modules<spu::module::Module>(false));
     
 
     // some frames have been buffered for the visualization, display or write these frames here

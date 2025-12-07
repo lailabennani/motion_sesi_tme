@@ -4,6 +4,10 @@
  * Observations on the stats:
  * morpho and sigma delta seem to be the ones getting most
  * of the time.
+ * 
+ * with the pipeline, we can get even 15 FPS ! :D
+ * 
+ * No Jetson in dalek uu :()
 **/
 
 #include <stdio.h>
@@ -528,13 +532,14 @@ int main(int argc, char** argv) {
     pip.export_dot(file);
     //n_processed_frames++; // incrementer ?
     //n_moving_objs = tracking_count_objects(tracking_data->tracks);
-/*
-    for (auto &mdl : pip.get_modules<spu::module::Module>(false)) {
-        for (auto &tsk : mdl->tasks) {
-            tsk->set_stats(true);
+
+    if (p_stats) {
+        for (auto &mdl : pip.get_modules<spu::module::Module>(false)) {
+            for (auto &tsk : mdl->tasks) {
+                tsk->set_stats(true);
+            }
         }
     }
-*/
 
     TIME_POINT(start_compute);
 
@@ -592,9 +597,16 @@ int main(int argc, char** argv) {
         TIME_SETA(total);
         double total = TIME_ELAPSED_MS(total) / n_processed_frames;
         printf("# => Total          = %8.3f ms [~%5.2f FPS]\n", total, 1000. / total);
-    }
+        const bool ordered = true, display_throughput = false;
 
-    //spu::tools::Stats::show(seq.get_modules<spu::module::Module>(false));
+        auto stages = pip.get_stages();
+
+        for (size_t s = 0; s < stages.size(); s++) {
+            const int n_threads = stages[s]->get_n_threads();
+            printf("#\n# Pipeline stage %ld (%d thrd(s)): \n", (s + 1), n_threads);
+            spu::tools::Stats::show(stages[s]->get_tasks_per_types(), ordered, display_throughput);
+        }
+    }
     
 
     // some frames have been buffered for the visualization, display or write these frames here
