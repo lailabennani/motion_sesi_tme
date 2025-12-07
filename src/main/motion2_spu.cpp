@@ -360,8 +360,7 @@ int main(int argc, char** argv) {
     size_t n_moving_objs = 0, n_processed_frames = 0;
     //TIME_SETA(dec_a); TIME_SETA(sd_a); TIME_SETA(mrp_a); TIME_SETA(ccl_a); TIME_SETA(cca_a); TIME_SETA(flt_a);
     //TIME_SETA(knn_a); TIME_SETA(trk_a); TIME_SETA(log_a); TIME_SETA(vis_a);
-    TIME_POINT(start_compute);
-    
+
     // -------------------------------------- //
     // -- IMAGE PROCESSING CHAIN EXECUTION -- //
     // -------------------------------------- //
@@ -530,30 +529,44 @@ int main(int argc, char** argv) {
     //n_processed_frames++; // incrementer ?
     //n_moving_objs = tracking_count_objects(tracking_data->tracks);
 /*
-    for (auto &mdl : seq.get_modules<spu::module::Module>(false)) {
+    for (auto &mdl : pip.get_modules<spu::module::Module>(false)) {
         for (auto &tsk : mdl->tasks) {
             tsk->set_stats(true);
         }
     }
 */
 
-    pip.exec([&n_processed_frames, &n_moving_objs, 
-        &tracking_data, &video, &cur_fra, &t_start_compute, &t_start_compute_us]() {
-        n_moving_objs = tracking_count_objects(tracking_data->tracks);
-        fprintf(stderr, "(II) Frame n°%4d", cur_fra);
-        TIME_POINT(stop_compute);
-        fprintf(stderr, " -- Time = %6.3f sec", TIME_ELAPSED2_SEC(start_compute, stop_compute));
-        fprintf(stderr, " -- FPS = %4d", (int)(n_processed_frames / (TIME_ELAPSED2_SEC(start_compute, stop_compute))));
-        fprintf(stderr, " -- Tracks = %3lu\r", (unsigned long)n_moving_objs);
-        fflush(stderr);
-        n_processed_frames++;
+    TIME_POINT(start_compute);
 
-        return video.is_done();
+    pip.exec({
+        [&n_processed_frames, &video]() {
+            
+            n_processed_frames++;
+
+            return video.is_done();
+        },
+
+        [&video]() {
+            return video.is_done();
+        },
+        
+        [&n_processed_frames, &n_moving_objs, 
+        &tracking_data, &video, &cur_fra, &t_start_compute, &t_start_compute_us]() {
+            n_moving_objs = tracking_count_objects(tracking_data->tracks);
+            fprintf(stderr, "(II) Frame n°%4d", cur_fra);
+            TIME_POINT(stop_compute);
+            fprintf(stderr, " -- Time = %6.3f sec", TIME_ELAPSED2_SEC(start_compute, stop_compute));
+            fprintf(stderr, " -- FPS = %4d", (int)(n_processed_frames / (TIME_ELAPSED2_SEC(start_compute, stop_compute))));
+            fprintf(stderr, " -- Tracks = %3lu\r", (unsigned long)n_moving_objs);
+            fflush(stderr);
+    
+            return video.is_done();
+        }
     });
 
-    n_processed_frames--;
-
     TIME_POINT(stop_compute);
+
+    n_processed_frames--;
     fprintf(stderr, "\n");
 
     if (p_trk_roi_path) {
