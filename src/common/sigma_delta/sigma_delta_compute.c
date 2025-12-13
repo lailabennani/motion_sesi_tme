@@ -1,5 +1,4 @@
 // lahkim leon
-// 
 #include <math.h>
 #include <stdlib.h>
 #include <nrc2.h>
@@ -45,36 +44,22 @@ void sigma_delta_compute(sigma_delta_data_t *sd_data, const uint8_t** img_in, ui
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             uint8_t new_m = sd_data->M[i][j];
+
             if (sd_data->M[i][j] < img_in[i][j])
                 new_m += 1;
             else if (sd_data->M[i][j] > img_in[i][j])
                 new_m -= 1;
+
             sd_data->M[i][j] = new_m;
-        }
-    }
-
-    #pragma omp parallel for collapse(2) schedule(runtime) firstprivate(i0, i1, j0, j1)
-    for (int i = i0; i <= i1; i++) {
-        for (int j = j0; j <= j1; j++) {
             sd_data->O[i][j] = abs(sd_data->M[i][j] - img_in[i][j]);
-        }
-    }
-
-    #pragma omp parallel for collapse(2) schedule(runtime) firstprivate(i0, i1, j0, j1)
-    for (int i = i0; i <= i1; i++) {
-        for (int j = j0; j <= j1; j++) {
             uint8_t new_v = sd_data->V[i][j];
+
             if (sd_data->V[i][j] < N * sd_data->O[i][j])
                 new_v += 1;
             else if (sd_data->V[i][j] > N * sd_data->O[i][j])
                 new_v -= 1;
-            sd_data->V[i][j] = MAX(MIN(new_v, sd_data->vmax), sd_data->vmin);
-        }
-    }
 
-    #pragma omp parallel for collapse(2) schedule(runtime) firstprivate(i0, i1, j0, j1)
-    for (int i = i0; i <= i1; i++) {
-        for (int j = j0; j <= j1; j++) {
+            sd_data->V[i][j] = MAX(MIN(new_v, sd_data->vmax), sd_data->vmin);
             img_out[i][j] = sd_data->O[i][j] < sd_data->V[i][j] ? 0 : 255;
         }
     }
