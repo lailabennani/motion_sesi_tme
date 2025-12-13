@@ -2,9 +2,11 @@
 #include <math.h>
 #include <stdlib.h>
 #include <nrc2.h>
+#include <mipp.h>
 
 #include "motion/macros.h"
 #include "motion/sigma_delta/sigma_delta_compute.h"
+
 
 sigma_delta_data_t* sigma_delta_alloc_data(const int i0, const int i1, const int j0, const int j1, const uint8_t vmin,
                                            const uint8_t vmax) {
@@ -40,25 +42,58 @@ void sigma_delta_free_data(sigma_delta_data_t* sd_data) {
 
 void sigma_delta_compute(sigma_delta_data_t *sd_data, const uint8_t** img_in, uint8_t** img_out, const int i0,
                          const int i1, const int j0, const int j1, const uint8_t N) {
-    #pragma omp parallel for collapse(2) schedule(runtime) firstprivate(i0, i1, j0, j1)
-    for (int i = i0; i <= i1; i++) {
-        for (int j = j0; j <= j1; j++) {
-            uint8_t new_m = sd_data->M[i][j];
+    const int size8 = mipp::N<uint8_t>();
+    mipp::Reg<uint8_t> vimg_in;
+    mipp::Reg<uint8_t> vM;
+    mipp::Reg<uint8_t> vO;
+    mipp::Reg<uint8_t> vV;
+    mipp::Reg<uint8_t> vimg_out;
+    mipp::Msk<size8> m_if;
+    mipp::Reg<uint8_t> vdos = 2;
+    mipp::Reg<uint8_t> vone = 1;
+    mipp::Reg<uint8_t> vN = N;
+    mipp::Reg<uint8_t> vmax = sd_data->vmax;
+    mipp::Reg<uint8_t> vmin = sd_data->vmin;
 
+    int new_j1 = j1 - ((j1 - j0 + 1) / size8) * size8;
+
+    #pragma omp parallel for schedule(runtime) firstprivate(i0, i1, j0, j1)
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= new_j1; j++) {
+            vM.loadu(&sd_data->M[i][j]);
+            vimg_in.loadu(&img_in[i][j]);
+            m_if = vM < vimg_in;
+            vM = vM - vone;
+            vM = mipp::mask<uint8_t, mipp::add>(m_if, vM, vM, vdos);
+            vO = mipp::abs(vM - vimg_in);
+
+            vV.loadu(&sd_data->V[i][j]);
+            vV = vV - vone;
+            m_if = vV < vN * vO;
+            vV = mipp::mask<uint8_t, mipp::add>(m_if, vV, vV, vone);
+            vV = mipp::max(mipp::min(vV, vmax), vmin);
+            m_if = vO >= vV;
+            mipp::maskzld<uint8_t>(m_if, &img_out[i][j]);
+
+            vM.storeu(&sd_data->M[i][j]);
+            vO.storeu(&sd_data->O[i][j]);
+            vV.storeu(&sd_data->V[i][j]);
+        }
+
+        for (int j = new_j1 + 1; j <= j1; j++) {
+            uint8_t new_m = sd_data->M[i][j];
             if (sd_data->M[i][j] < img_in[i][j])
                 new_m += 1;
             else if (sd_data->M[i][j] > img_in[i][j])
                 new_m -= 1;
-
             sd_data->M[i][j] = new_m;
             sd_data->O[i][j] = abs(sd_data->M[i][j] - img_in[i][j]);
-            uint8_t new_v = sd_data->V[i][j];
 
+            uint8_t new_v = sd_data->V[i][j];
             if (sd_data->V[i][j] < N * sd_data->O[i][j])
                 new_v += 1;
             else if (sd_data->V[i][j] > N * sd_data->O[i][j])
                 new_v -= 1;
-
             sd_data->V[i][j] = MAX(MIN(new_v, sd_data->vmax), sd_data->vmin);
             img_out[i][j] = sd_data->O[i][j] < sd_data->V[i][j] ? 0 : 255;
         }

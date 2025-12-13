@@ -7,15 +7,15 @@
  * 
  * No Jetson in dalek uu :(
  * 
- * executions in az4-mixed
- * base execution we can get around 15 FPS
- * with the pipeline, we can get even 23 FPS ! :D
- * using the simpler pipeline we can get even 56 FPS !!! OwO \o/
- *  but 38 in moyen (maybe it was just some luck tho)
- * 
  * More stages -> more memory
  * 
- * OMP: 45 FPS in moyen (with 4 threads dynamic 8)
+ * az4-mixed
+ * From now on, testing with
+ * ./bin/motion2 --vid-in-buff --vid-in-path ./traffic/1080p_day_street_top_view_snow.mp4 
+ * --vid-in-stop 100 --flt-s-min 2000 --knn-d 50 --trk-obj-min 5
+ * 
+ * BASE: 36 FPS
+ * OMP: 252 FPS (with 8 threads static 16) !!!
  * 
  * 
 **/
