@@ -14,9 +14,12 @@
  * ./bin/motion2 --vid-in-buff --vid-in-path ./traffic/1080p_day_street_top_view_snow.mp4 
  * --vid-in-stop 100 --flt-s-min 2000 --knn-d 50 --trk-obj-min 5
  * 
- * BASE: 36 FPS
- * OMP: 252 FPS (with 8 threads static 16) !!!
- * 
+ * BASE: 22 FPS
+ * STREAMPU BASE (with exec()'s): 22 FPS
+ * STREAMPU SEQ: 22 FPS
+ * PIPELINE: 66 FPS !!
+ * OMP: 252 FPS (with 8 threads, static 16) !!!
+ * SIMD + OMP: 290 FPS (8 threads, static 8) !!!!!!
  * 
 **/
 
