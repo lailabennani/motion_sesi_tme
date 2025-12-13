@@ -241,7 +241,7 @@ if (MOTION_SPU_RUNTIME)
 	motion_target_include_directories("${motion_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/cpp)
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/mipp/include/mipp.h")
-	motion_target_include_directories("${motion_targets_list}" PUBLIC "lib/MIPP/include")
+	motion_target_include_directories("${motion_targets_list}" PUBLIC "lib/mipp/include")
 	message(STATUS "Motion - Header found: MIPP")
 endif()
 
